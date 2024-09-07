@@ -19,20 +19,19 @@ func TestConnect(t *testing.T) {
 }
 
 func TestDeck(t *testing.T) {
+	clearDB(t)
+
 	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("error connecting to the database: %v", err)
 	}
 	defer func() {
-		result := db.Raw("DROP TABLE cards, users, decks;")
-		if result.Error != nil {
-			t.Fatalf("error deleting tables: %v", result.Error)
-		}
 		err := Disconnect()
 		if err != nil {
 			t.Fatalf("error disconnecting from db: %v", err)
 		}
 	}()
+
 	if err := CreateDeck("spanish", 1); err != nil {
 		t.Fatalf("unable to create deck: %v", err)
 	}
@@ -65,15 +64,13 @@ func TestDeck(t *testing.T) {
 }
 
 func TestCard(t *testing.T) {
+	clearDB(t)
+
 	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("error connecting to the database: %v", err)
 	}
 	defer func() {
-		result := db.Raw("DROP TABLE cards, users, decks;")
-		if result.Error != nil {
-			t.Fatalf("error deleting tables: %v", result.Error)
-		}
 		err := Disconnect()
 		if err != nil {
 			t.Fatalf("error disconnecting from db: %v", err)
@@ -112,18 +109,68 @@ func TestCard(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
+	clearDB(t)
+
 	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("unable to connect to the database: %v", err)
 	}
 	defer func() {
-		result := db.Raw("DROP TABLE cards, users, decks;")
-		if result.Error != nil {
-			t.Fatalf("error deleting tables: %v", result.Error)
-		}
 		err := Disconnect()
 		if err != nil {
 			t.Fatalf("error disconnecting from db: %v", err)
 		}
 	}()
+	if err := CreateUser(User{Id: 1, TgUserId: 1, State: "edging"}); err != nil {
+		t.Fatalf("error creating new user: %v", err)
+	}
+
+	user, err := GetUserState(1)
+	if err != nil {
+		t.Fatalf("error getting user state: %v", err)
+	}
+	if user.Id != 1 {
+		t.Fatalf("user id is not 1, got %v", user.TgUserId)
+	}
+	if user.TgUserId != 1 {
+		t.Fatalf("tg_user_id is not 1, got %v", user.TgUserId)
+	}
+	if user.State != "edging" {
+		t.Fatalf("user state is not edging, got %v", user.State)
+	}
+
+	if err := UpdateUserState(User{Id: 1, TgUserId: 1, State: "skibidi"}); err != nil {
+		t.Fatalf("error updating user state: %v", err)
+	}
+
+	user, err = GetUserState(1)
+	if err != nil {
+		t.Fatalf("error getting user state: %v", err)
+	}
+	if user.Id != 1 {
+		t.Fatalf("user id is not 1, got %v", user.TgUserId)
+	}
+	if user.TgUserId != 1 {
+		t.Fatalf("tg_user_id is not 1, got %v", user.TgUserId)
+	}
+	if user.State != "skibidi" {
+		t.Fatalf("user state is not skibidi, got %v", user.State)
+	}
+}
+
+func clearDB(t *testing.T) {
+	config.Load("../config/configs/bot.json", "../config/configs/db.json")
+	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
+		t.Fatalf("error connecting to the database: %v", err)
+	}
+	defer func() {
+		err := Disconnect()
+		if err != nil {
+			t.Fatalf("error disconnecting from db: %v", err)
+		}
+	}()
+	result := db.Exec("DROP TABLE cards, users, decks;")
+	if result.Error != nil {
+		t.Fatalf("error deleting tables: %v", result.Error)
+	}
 }

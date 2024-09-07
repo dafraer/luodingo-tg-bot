@@ -72,16 +72,21 @@ func DeleteCard(deckName string, userId int64) (err error) {
 	if result.Error != nil {
 		return result.Error
 	}
-	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("decks.tg_user_id = ? and deck_id = ?", userId, deck.Id).Delete(&Card{})
+	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("deck_id = ?", deck.Id).Delete(&Card{})
 	return result.Error
 }
 
 func GetUserState(userId int64) (user User, err error) {
-	result := db.Table("users").Find(user, "tg_user_id = ?", userId)
+	result := db.Table("users").Find(&user, "tg_user_id = ?", userId)
 	return user, result.Error
 }
 
 func UpdateUserState(user User) (err error) {
-	result := db.Table("decks").Where("tg_user_id = ?", user.TgUserId).Updates(user)
+	result := db.Table("users").Where("tg_user_id = ?", user.TgUserId).Updates(user)
+	return result.Error
+}
+
+func CreateUser(user User) (err error) {
+	result := db.Table("users").Create(&user)
 	return result.Error
 }
