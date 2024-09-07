@@ -121,7 +121,7 @@ func TestUser(t *testing.T) {
 			t.Fatalf("error disconnecting from db: %v", err)
 		}
 	}()
-	if err := CreateUser(User{Id: 1, TgUserId: 1, State: "edging"}); err != nil {
+	if err := CreateUser(User{Id: 1, TgUserId: 1, State: 0}); err != nil {
 		t.Fatalf("error creating new user: %v", err)
 	}
 
@@ -135,11 +135,11 @@ func TestUser(t *testing.T) {
 	if user.TgUserId != 1 {
 		t.Fatalf("tg_user_id is not 1, got %v", user.TgUserId)
 	}
-	if user.State != "edging" {
-		t.Fatalf("user state is not edging, got %v", user.State)
+	if user.State != 0 {
+		t.Fatalf("user state is not 0, got %v", user.State)
 	}
 
-	if err := UpdateUserState(User{Id: 1, TgUserId: 1, State: "skibidi"}); err != nil {
+	if err := UpdateUserState(User{Id: 1, TgUserId: 1, State: 2}); err != nil {
 		t.Fatalf("error updating user state: %v", err)
 	}
 
@@ -153,8 +153,8 @@ func TestUser(t *testing.T) {
 	if user.TgUserId != 1 {
 		t.Fatalf("tg_user_id is not 1, got %v", user.TgUserId)
 	}
-	if user.State != "skibidi" {
-		t.Fatalf("user state is not skibidi, got %v", user.State)
+	if user.State != 2 {
+		t.Fatalf("user state is not 2, got %v", user.State)
 	}
 }
 

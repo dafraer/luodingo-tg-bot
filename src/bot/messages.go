@@ -1,18 +1,20 @@
 package bot
 
 import (
+	"flashcards-bot/src/db"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
 )
 
 func processMessage(b *tgBot, update tgbotapi.Update) {
-	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-	b.sessions.mutex.RLock()
-	state := b.sessions.userStates[update.Message.From.ID].action
-	b.sessions.mutex.RUnlock()
-	switch state {
-	case newDeck:
-		newDeckHandler(b, update)
+	log.Printf("MESSAGE: [%s] %s\n", update.Message.From.UserName, update.Message.Text)
+	user, err := db.GetUserState(update.Message.From.ID)
+	if err != nil {
+		log.Printf("Error getting user state: %v\n", err)
+	}
+	switch user.State {
+	case waitingNewDeckName:
+		newDeckNameMessage(b, update)
 	case myCards:
 		listCardsHandler(b, update)
 	case deleteDeck:
@@ -28,7 +30,34 @@ func processMessage(b *tgBot, update tgbotapi.Update) {
 	case studyDeck:
 		studyDeckHandler(b, update)
 	default:
-		unknownMessageHandler(b, update)
+		unknownMessage(b, update)
 	}
 
+}
+
+func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
+	//Creating the deck in the database
+	if err := db.CreateDeck(update.Message.Text, update.Message.From.ID); err != nil {
+		log.Printf("Error creating deck: %v\n", err)
+
+		//If creating the deck failed - notify the user
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ErrorCreatingDeck)
+		if _, err := b.bot.Send(msg); err != nil {
+			log.Printf("Error sending message: %v\n", err)
+		}
+		return
+	}
+
+	//Notify the user that deck has been created successfully
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.DeckCreated)
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
+}
+
+func unknownMessage(b *tgBot, update tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.UnknownMessage)
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
 }

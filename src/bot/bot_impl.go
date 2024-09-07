@@ -30,106 +30,23 @@ func handleUpdates(b *tgBot, update tgbotapi.Update) {
 	}
 }
 
-// sdfdsf
-// sdfsdf
-// sdfsdf
+func createDecksInlineKeyboard(b *tgBot, update tgbotapi.Update) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
+	//Get decks from database
+	decks, err := db.GetDecks(update.Message.From.ID)
 
-func unknownMessageHandler(b *tgBot, update tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.UnknownMessage)
-	b.bot.Send(msg)
-
-}
-
-func newDeckHandler(b *tgBot, update tgbotapi.Update) {
-	//Two conditions: if user just pressed the command, we prompt them to type new deck's name, else we add the deck with the provided name
-	b.sessions.mutex.Lock()
-	defer b.sessions.mutex.Unlock()
-
-	if b.sessions.userStates[update.Message.From.ID].action == newDeck {
-		db.CreateDeck(update.Message.Text, update.Message.From.ID)
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.DeckCreated)
-		b.bot.Send(msg)
-		b.sessions.userStates[update.Message.From.ID] = userState{}
-	} else {
-		b.sessions.userStates[update.Message.From.ID] = userState{newDeck, "", ""}
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeckName)
-		b.bot.Send(msg)
+	//Create buttons
+	var buttons [][]tgbotapi.InlineKeyboardButton
+	for _, v := range decks {
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(v.Name), fmt.Sprint(v.Name))))
 	}
+
+	//Return the keyboard with created buttons
+	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
 }
 
-func deleteDeckHandler(b *tgBot, update tgbotapi.Update) {
-	b.sessions.mutex.Lock()
-	defer b.sessions.mutex.Unlock()
-
-	if update.CallbackQuery != nil {
-		name := update.CallbackQuery.Data
-		if err := db.DeleteDeck(name, update.CallbackQuery.From.ID); err != nil {
-			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.ErrorDeleteingDeck)
-			b.bot.Send(msg)
-		} else {
-			decks, err := db.GetDecks(update.CallbackQuery.From.ID)
-			if len(decks) == 0 {
-				delete := tgbotapi.NewDeleteMessage(
-					update.CallbackQuery.Message.Chat.ID,
-					update.CallbackQuery.Message.MessageID,
-				)
-				b.bot.Send(delete)
-				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.DeckDeleted)
-				b.bot.Send(msg)
-				return
-			}
-			if err != nil {
-				log.Printf("ERROR GETTING DECKS:%v\n", err)
-			}
-			var buttons [][]tgbotapi.InlineKeyboardButton
-			for _, v := range decks {
-				buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(v.Name), fmt.Sprint(v.Name))))
-			}
-			keyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
-			edit := tgbotapi.NewEditMessageReplyMarkup(
-				update.CallbackQuery.Message.Chat.ID,
-				update.CallbackQuery.Message.MessageID,
-				keyboard,
-			)
-			b.bot.Send(edit)
-			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.DeckDeleted)
-			b.bot.Send(msg)
-			b.sessions.userStates[update.CallbackQuery.From.ID] = userState{}
-		}
-	} else {
-		b.sessions.userStates[update.Message.From.ID] = userState{action: deleteDeck}
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
-
-		// Creating inline keyboard with buttons
-		decks, err := db.GetDecks(update.Message.From.ID)
-		if len(decks) == 0 {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
-			b.bot.Send(msg)
-			return
-		}
-		if err != nil {
-			log.Printf("ERROR GETTING DECKS:%v\n", err)
-		}
-		var buttons [][]tgbotapi.InlineKeyboardButton
-		for _, v := range decks {
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(v.Name), fmt.Sprint(v.Name))))
-		}
-		keyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
-		// Attaching the keyboard to the message
-		msg.ReplyMarkup = keyboard
-
-		// Sending the message with the attached inline keyboard
-		b.bot.Send(msg)
-	}
-}
-
-func studyDeckHandler(b *tgBot, update tgbotapi.Update) {
-
-}
-
-func deleteCardHandler(b *tgBot, update tgbotapi.Update) {
-
-}
+//*******************************
+// REFACTOR EVERYTHING UNDER THIS COMMENT
+//*******************************
 
 func newCardHandler(b *tgBot, update tgbotapi.Update) {
 	b.sessions.mutex.Lock()

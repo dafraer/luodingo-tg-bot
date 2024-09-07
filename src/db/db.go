@@ -9,7 +9,7 @@ type User struct {
 	Id           int `gorm:"primaryKey"`
 	TgUserId     int64
 	StudyTime    time.Duration
-	State        string
+	State        int
 	DeckSelected string
 	CardSelected string
 }

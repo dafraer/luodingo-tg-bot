@@ -8,24 +8,27 @@ import (
 )
 
 type Messages struct {
-	Start              string
-	Help               string
-	ChooseDeck         string
-	ChooseCard         string
-	ListDecks          string
-	ListCards          string
-	DeckDeleted        string
-	ErrorDeleteingDeck string
-	CardDeleted        string
-	DeckCreated        string
-	CardCreated        string
-	ChooseDeckName     string
-	ChooseCardName     string
-	UnknownMessage     string
-	Stats              string
-	NoDecks            string
-	ErrorCreatingCard  string
-	CreateDeckFirst    string
+	Start             string
+	Help              string
+	ChooseDeck        string
+	ChooseCard        string
+	ListDecks         string
+	ListCards         string
+	DeckDeleted       string
+	ErrorCreatingDeck string
+	ErrorDeletingDeck string
+	CardDeleted       string
+	DeckCreated       string
+	CardCreated       string
+	ChooseDeckName    string
+	ChooseCardFront   string
+	ChooseCardBack    string
+	UnknownMessage    string
+	UnknownCommand    string
+	Stats             string
+	NoDecks           string
+	ErrorCreatingCard string
+	CreateDeckFirst   string
 }
 
 func LoadEnMessages() Messages {
