@@ -15,22 +15,10 @@ func processMessage(b *tgBot, update tgbotapi.Update) {
 	switch user.State {
 	case waitingNewDeckName:
 		newDeckNameMessage(b, update)
-	case myCards:
-		listCardsHandler(b, update)
-	case deleteDeck:
-		deleteDeckHandler(b, update)
-	case deckDeleteCard:
-		deleteCardHandler(b, update)
-	case cardDeleteCard:
-		deleteCardHandler(b, update)
-	case deckNewCard:
-		newCardHandler(b, update)
 	case waitingNewCardFront:
 		newCardFrontMessage(b, update)
 	case waitingNewCardBack:
 		newCardBackMessage(b, update)
-	case studyDeck:
-		studyDeckHandler(b, update)
 	default:
 		unknownMessage(b, update)
 	}

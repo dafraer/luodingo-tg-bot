@@ -45,7 +45,3 @@ func createDecksInlineKeyboard(b *tgBot, update tgbotapi.Update) (keyboard tgbot
 //*******************************
 // REFACTOR EVERYTHING UNDER THIS COMMENT
 //*******************************
-
-func listCardsHandler(b *tgBot, update tgbotapi.Update) {
-
-}

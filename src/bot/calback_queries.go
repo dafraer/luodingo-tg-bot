@@ -13,20 +13,10 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		log.Printf("Error getting user state: %v\n", err)
 	}
 	switch user.State {
-	case myCards:
-		listCardsHandler(b, update)
 	case waitingDeleteDeckName:
 		deleteDeckCallback(b, update)
-	case deckDeleteCard:
-		deleteCardHandler(b, update)
-	case cardDeleteCard:
-		deleteCardHandler(b, update)
 	case waitingNewCardDeckName:
 		newCardCallback(b, update)
-	case cardNewCard:
-		newCardHandler(b, update)
-	case studyDeck:
-		studyDeckHandler(b, update)
 	default:
 		unknownCallback(b, update)
 	}
