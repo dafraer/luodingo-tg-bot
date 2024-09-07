@@ -1,0 +1,87 @@
+package db
+
+import (
+	"fmt"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+var db *gorm.DB
+
+func Connect(host, user, password, name, port string) (err error) {
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", host, user, password, name, port)
+	db, err = gorm.Open(postgres.Open(dsn))
+	if err != nil {
+		return
+	}
+	err = db.AutoMigrate(&User{}, &Deck{}, &Card{})
+	return
+}
+
+func Disconnect() (err error) {
+	sqlDB, err := db.DB()
+	if err != nil {
+		return
+	}
+	// Close the connection
+	err = sqlDB.Close()
+	return
+}
+
+func CreateDeck(name string, userId int64) (err error) {
+	result := db.Table("decks").Create(&Deck{TgUserId: userId, Name: name, CardsAmount: 0})
+	return result.Error
+}
+
+func GetDecks(userId int64) (decks []Deck, err error) {
+	result := db.Table("decks").Where("tg_user_id = ?", userId).Find(&decks)
+	return decks, result.Error
+}
+
+func UpdateDeck(oldDeck, newDeck Deck) (err error) {
+	result := db.Table("decks").Where("name = ? and tg_user_id = ?", oldDeck.Name, oldDeck.TgUserId).Updates(newDeck)
+	return result.Error
+}
+
+func DeleteDeck(name string, userId int64) (err error) {
+	result := db.Table("decks").Where("name = ? and tg_user_id = ?", name, userId).Delete(&Deck{})
+	err = result.Error
+	return
+}
+
+func CreateCard(deckName string, userId int64, front, back string) (err error) {
+	//TODO: make this work in 1 request
+	var deckId int
+	result := db.Table("decks").Select("id").Find(&deckId, "name = ? and tg_user_id = ?", deckName, userId)
+	if result.Error != nil {
+		return result.Error
+	}
+	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Create(&Card{DeckId: deckId, Front: front, Back: back, Learned: false})
+	return result.Error
+}
+
+func GetCards(deckName string, userId int64) (cards []Card, err error) {
+	result := db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("decks.name = ? and decks.tg_user_id = ?", deckName, userId).Find(&cards)
+	return cards, result.Error
+}
+
+func DeleteCard(deckName string, userId int64) (err error) {
+	//TODO: make this work in 1 request
+	var deck Deck
+	result := db.Table("decks").Select("id").Find(&deck, "name = ? and tg_user_id = ?", deckName, userId)
+	if result.Error != nil {
+		return result.Error
+	}
+	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("decks.tg_user_id = ? and deck_id = ?", userId, deck.Id).Delete(&Card{})
+	return result.Error
+}
+
+func GetUserState(userId int64) (user User, err error) {
+	result := db.Table("users").Find(user, "tg_user_id = ?", userId)
+	return user, result.Error
+}
+
+func UpdateUserState(user User) (err error) {
+	result := db.Table("decks").Where("tg_user_id = ?", user.TgUserId).Updates(user)
+	return result.Error
+}
