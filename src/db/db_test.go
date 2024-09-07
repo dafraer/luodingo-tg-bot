@@ -6,7 +6,7 @@ import (
 )
 
 func TestConnect(t *testing.T) {
-	config.Load("/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/bot.json", "/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/db.json")
+	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("unable to connect to the database: %v", err)
 	}
@@ -19,7 +19,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestDeck(t *testing.T) {
-	config.Load("/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/bot.json", "/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/db.json")
+	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("error connecting to the database: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestDeck(t *testing.T) {
 }
 
 func TestCard(t *testing.T) {
-	config.Load("/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/bot.json", "/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/db.json")
+	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("error connecting to the database: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestCard(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
-	config.Load("/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/bot.json", "/home/kamil/Downloads/projects/flash-cards-tg-bot/src/config/configs/db.json")
+	config.Load("../config/configs/bot.json", "../config/configs/db.json")
 	if err := Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		t.Fatalf("unable to connect to the database: %v", err)
 	}
