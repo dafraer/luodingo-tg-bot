@@ -24,6 +24,7 @@ func TestDeck(t *testing.T) {
 		t.Fatalf("error connecting to the database: %v", err)
 	}
 	defer func() {
+		db.Raw("DROP TABLE cards, users, decks;")
 		err := Disconnect()
 		if err != nil {
 			t.Fatalf("error disconnecting from db: %v", err)
@@ -66,6 +67,7 @@ func TestCard(t *testing.T) {
 		t.Fatalf("error connecting to the database: %v", err)
 	}
 	defer func() {
+		db.Raw("DROP TABLE cards, users, decks;")
 		err := Disconnect()
 		if err != nil {
 			t.Fatalf("error disconnecting from db: %v", err)
@@ -109,6 +111,7 @@ func TestUser(t *testing.T) {
 		t.Fatalf("unable to connect to the database: %v", err)
 	}
 	defer func() {
+		db.Raw("DROP TABLE cards, users, decks;")
 		err := Disconnect()
 		if err != nil {
 			t.Fatalf("error disconnecting from db: %v", err)
