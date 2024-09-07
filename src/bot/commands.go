@@ -36,6 +36,17 @@ func processCommand(b *tgBot, update tgbotapi.Update) {
 }
 
 func startCommand(b *tgBot, update tgbotapi.Update) {
+	//Create new user if it does not exist
+	_, err := db.GetUserState(update.Message.From.ID)
+	if err != nil {
+		//TODO fix
+		log.Printf("Error getting user state: %s\n", err)
+		if err := db.CreateUser(db.User{TgUserId: update.Message.From.ID}); err != nil {
+			log.Printf("Error creating user: %v", err)
+		}
+	}
+
+	//Send start message
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.Start)
 	if _, err := b.bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
@@ -71,7 +82,7 @@ func newCardCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
 
 	//Create an inline keyboard
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
 		log.Printf("Error creating a keyboard: %v\n", err)
 	}
@@ -134,7 +145,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
 
 	//Create a new keyboard with decks to choose from
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
 		log.Printf("Error getting decks:%v\n", err)
 	}

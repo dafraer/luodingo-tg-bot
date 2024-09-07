@@ -8,7 +8,7 @@ import (
 
 func processCallback(b *tgBot, update tgbotapi.Update) {
 	log.Printf("CALLBACK: [%s] %s\n", update.CallbackQuery.From.UserName, update.CallbackQuery.Data)
-	user, err := db.GetUserState(update.Message.From.ID)
+	user, err := db.GetUserState(update.CallbackQuery.From.ID)
 	if err != nil {
 		log.Printf("Error getting user state: %v\n", err)
 	}
@@ -24,10 +24,10 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 
 func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	//Update user state to default state
-	if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: defaultState}); err != nil {
+	/*if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: defaultState}); err != nil {
 		log.Printf("Error updating user state: %v\n", err)
 	}
-
+	*/
 	//Get deck name to delete
 	name := update.CallbackQuery.Data
 
@@ -42,7 +42,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Get decks keyboard
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID)
 	if err != nil {
 		log.Printf("Error getting inline keyboard: %v\n", err)
 	}

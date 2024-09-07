@@ -77,7 +77,7 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Notify the user about creating card
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseCardBack)
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CardCreated)
 	if _, err := b.bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}

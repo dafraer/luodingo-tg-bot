@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -78,6 +79,9 @@ func DeleteCard(deckName string, userId int64) (err error) {
 
 func GetUserState(userId int64) (user User, err error) {
 	result := db.Table("users").Find(&user, "tg_user_id = ?", userId)
+	if result.RowsAffected == 0 {
+		return User{}, errors.New("user not found")
+	}
 	return user, result.Error
 }
 

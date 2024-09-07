@@ -28,9 +28,9 @@ func handleUpdates(b *tgBot, update tgbotapi.Update) {
 	}
 }
 
-func createDecksInlineKeyboard(b *tgBot, update tgbotapi.Update) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
+func createDecksInlineKeyboard(userId int64) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
 	//Get decks from database
-	decks, err := db.GetDecks(update.Message.From.ID)
+	decks, err := db.GetDecks(userId)
 
 	//Create buttons
 	var buttons [][]tgbotapi.InlineKeyboardButton
@@ -41,7 +41,3 @@ func createDecksInlineKeyboard(b *tgBot, update tgbotapi.Update) (keyboard tgbot
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
 }
-
-//*******************************
-// REFACTOR EVERYTHING UNDER THIS COMMENT
-//*******************************
