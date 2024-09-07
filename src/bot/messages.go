@@ -25,8 +25,10 @@ func processMessage(b *tgBot, update tgbotapi.Update) {
 		deleteCardHandler(b, update)
 	case deckNewCard:
 		newCardHandler(b, update)
-	case cardNewCard:
-		newCardHandler(b, update)
+	case waitingNewCardFront:
+		newCardFrontMessage(b, update)
+	case waitingNewCardBack:
+		newCardBackMessage(b, update)
 	case studyDeck:
 		studyDeckHandler(b, update)
 	default:
@@ -53,6 +55,45 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 	if _, err := b.bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
+}
+
+func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
+
+	//Update user state to "waiting for back side of the card" and put front card in there
+	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: update.Message.Text}); err != nil {
+		log.Printf("Error updating user state: %v\n", err)
+	}
+
+	//Prompt the user to choose back of the card
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseCardBack)
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
+}
+
+func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
+	//Get user data
+	user, err := db.GetUserState(update.Message.From.ID)
+	if err != nil {
+		log.Printf("Error getting user state: %v\n", err)
+	}
+
+	//Create the card in the db
+	if err := db.CreateCard(user.DeckSelected, user.TgUserId, user.CardSelected, update.Message.Text); err != nil {
+		log.Printf("Error creating deck: %v\n", err)
+	}
+
+	//Update user state
+	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: defaultState, DeckSelected: " ", CardSelected: " "}); err != nil {
+		log.Printf("Error updating user state: %v\n", err)
+	}
+
+	//Notify the user about creating card
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseCardBack)
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
+
 }
 
 func unknownMessage(b *tgBot, update tgbotapi.Update) {

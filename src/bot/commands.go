@@ -4,6 +4,7 @@ package bot
 
 import (
 	"flashcards-bot/src/db"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
 )
@@ -61,10 +62,62 @@ func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 	}
 }
 func newCardCommand(b *tgBot, update tgbotapi.Update) {
+	//Update user state to "waiting for a deck in which card should be created" and put deck name in there
+	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewCardDeckName}); err != nil {
+		log.Printf("Error updating user state: %v\n", err)
+	}
 
+	//Create a message
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
+
+	//Create an inline keyboard
+	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update)
+	if err != nil {
+		log.Printf("Error creating a keyboard: %v\n", err)
+	}
+
+	//If user has no decks prompt him to create one first
+	if decksAmount <= 0 {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CreateDeckFirst)
+		if _, err := b.bot.Send(msg); err != nil {
+			log.Printf("Error sending message: %v\n", err)
+		}
+		return
+	}
+
+	// Attaching the keyboard to the message
+	msg.ReplyMarkup = keyboard
+
+	// Sending the message with the attached inline keyboard
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
 }
 func listDecksCommand(b *tgBot, update tgbotapi.Update) {
+	//Get decks from db
+	decks, err := db.GetDecks(update.Message.From.ID)
+	if err != nil {
+		log.Printf("Error getting decks from db: %v", err)
+	}
 
+	//If no decks tell user that they have no decks
+	if len(decks) == 0 {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
+		if _, err := b.bot.Send(msg); err != nil {
+			log.Printf("Error sending message: %v\n", err)
+		}
+		return
+	}
+
+	//List user's decks
+	table := "These are your decks:\n"
+	for i, v := range decks {
+		table += fmt.Sprintf("%d. %v\n", i+1, v)
+	}
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, table)
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
 }
 
 func listCardsCommand(b *tgBot, update tgbotapi.Update) {

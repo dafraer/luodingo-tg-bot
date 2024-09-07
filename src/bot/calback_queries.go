@@ -21,8 +21,8 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		deleteCardHandler(b, update)
 	case cardDeleteCard:
 		deleteCardHandler(b, update)
-	case deckNewCard:
-		newCardHandler(b, update)
+	case waitingNewCardDeckName:
+		newCardCallback(b, update)
 	case cardNewCard:
 		newCardHandler(b, update)
 	case studyDeck:
@@ -89,4 +89,21 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 
 func unknownCallback(b *tgBot, update tgbotapi.Update) {
 	log.Printf("UNKNOWN CALLBACK: [%s]\n", update.CallbackQuery.From.UserName)
+}
+
+func newCardCallback(b *tgBot, update tgbotapi.Update) {
+	//Update the user state to "waiting card front"
+	if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingNewCardFront, DeckSelected: update.CallbackQuery.Data}); err != nil {
+	}
+	//Edit the message
+	edit := tgbotapi.NewEditMessageText(
+		update.CallbackQuery.Message.Chat.ID,
+		update.CallbackQuery.Message.MessageID,
+		en.ChooseCardFront,
+	)
+
+	//Send the edit
+	if _, err := b.bot.Send(edit); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
 }
