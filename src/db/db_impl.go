@@ -45,7 +45,19 @@ func UpdateDeck(oldDeck, newDeck Deck) (err error) {
 }
 
 func DeleteDeck(name string, userId int64) (err error) {
-	result := db.Table("decks").Where("name = ? and tg_user_id = ?", name, userId).Delete(&Deck{})
+	//Find deck id
+	var deck Deck
+	result := db.Table("decks").Select("id").Find(&deck, "name = ? and tg_user_id = ?", name, userId)
+	if result.Error != nil {
+		return result.Error
+	}
+	//Delete all cards of that deck
+	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("deck_id = ?", deck.Id).Delete(&Card{})
+	if result.Error != nil {
+		return result.Error
+	}
+	//Delete the deck
+	result = db.Table("decks").Where("name = ? and tg_user_id = ?", name, userId).Delete(&Deck{})
 	err = result.Error
 	return
 }
