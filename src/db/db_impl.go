@@ -78,14 +78,14 @@ func GetCards(deckName string, userId int64) (cards []Card, err error) {
 	return cards, result.Error
 }
 
-func DeleteCard(deckName string, userId int64) (err error) {
+func DeleteCard(deckName string, userId int64, cardId string) (err error) {
 	//TODO: make this work in 1 request
 	var deck Deck
 	result := db.Table("decks").Select("id").Find(&deck, "name = ? and tg_user_id = ?", deckName, userId)
 	if result.Error != nil {
 		return result.Error
 	}
-	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("deck_id = ?", deck.Id).Delete(&Card{})
+	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("deck_id = ? and cards.id = ?", deck.Id, cardId).Delete(&Card{})
 	return result.Error
 }
 

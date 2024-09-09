@@ -27,6 +27,7 @@ type Messages struct {
 	UnknownCommand    string
 	Stats             string
 	NoDecks           string
+	NoCards           string
 	ErrorCreatingCard string
 	CreateDeckFirst   string
 }

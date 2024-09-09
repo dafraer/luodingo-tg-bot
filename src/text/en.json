@@ -18,6 +18,7 @@
   "UnknownCommand": "Sorry I don't understand this command",
   "Stats": "Here are your stats:",
   "NoDecks": "You don't have any decks",
+  "NoCards": "This deck has no cards",
   "ErrorCreatingCard": "The error has occured when trying to create the card",
   "CreateDeckFirst": "To add a card, you first need to create a deck"
 }

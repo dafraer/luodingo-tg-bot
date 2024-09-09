@@ -26,7 +26,7 @@ type Card struct {
 	DeckId  int
 	Front   string
 	Back    string
-	Learned bool //Etiher learned or not learned
+	Learned bool //Either learned or not learned
 }
 
 func (d Deck) String() string {
