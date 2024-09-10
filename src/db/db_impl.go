@@ -64,12 +64,19 @@ func DeleteDeck(name string, userId int64) (err error) {
 
 func CreateCard(deckName string, userId int64, front, back string) (err error) {
 	//TODO: make this work in 1 request
-	var deckId int
-	result := db.Table("decks").Select("id").Find(&deckId, "name = ? and tg_user_id = ?", deckName, userId)
+	var deck Deck
+	result := db.Table("decks").Find(&deck, "name = ? and tg_user_id = ?", deckName, userId)
 	if result.Error != nil {
 		return result.Error
 	}
-	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Create(&Card{DeckId: deckId, Front: front, Back: back, Learned: false})
+	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Create(&Card{DeckId: deck.Id, Front: front, Back: back, Learned: false})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	//Increase amount of cards in the deck
+	deck.CardsAmount++
+	db.Table("decks").Where("name = ? and tg_user_id = ?", deckName, userId).Updates(&deck)
 	return result.Error
 }
 

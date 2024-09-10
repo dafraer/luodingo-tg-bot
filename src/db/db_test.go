@@ -96,7 +96,7 @@ func TestCard(t *testing.T) {
 	if cards[0].Back != "hello" {
 		t.Fatalf("card does not contain hello, got %s", cards[0].Back)
 	}
-	if err := DeleteCard("spanish", 1); err != nil {
+	if err := DeleteCard("spanish", 1, "1"); err != nil {
 		t.Fatalf("unable to delete card: %v", err)
 	}
 	cards, err = GetCards("spanish", 1)
