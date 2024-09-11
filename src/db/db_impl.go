@@ -85,6 +85,32 @@ func GetCards(deckName string, userId int64) (cards []Card, err error) {
 	return cards, result.Error
 }
 
+func GetUnlearnedCards(deckName string, userId int64) (cards []Card, err error) {
+	result := db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("decks.name = ? and decks.tg_user_id = ? and learned = false", deckName, userId).Find(&cards)
+	return cards, result.Error
+}
+
+func UpdateCardState(front string, deckName string, userId int64, learned bool) (err error) {
+	var deck Deck
+	result := db.Table("decks").Where("tg_user_id = ? and name = ?", userId, deckName).Find(&deck)
+	if result.Error != nil {
+		return result.Error
+	}
+	result = db.Table("cards").Where("front = ? and deck_id = ?", front, deck.Id).Updates(Card{DeckId: deck.Id, Learned: learned})
+	return result.Error
+}
+
+func UnlearnCards(deckName string, userId int64) (err error) {
+	var deck Deck
+	result := db.Table("decks").Where("tg_user_id = ? and name = ?", userId, deckName).Find(&deck)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	result = db.Table("cards").Where("deck_id = ?", deck.Id).Updates(map[string]interface{}{"learned": false})
+	return result.Error
+}
+
 func DeleteCard(deckName string, userId int64, cardId string) (err error) {
 	//TODO: make this work in 1 request
 	var deck Deck

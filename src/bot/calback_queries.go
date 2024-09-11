@@ -24,8 +24,78 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		cardDeleteCardCallback(b, update, user.DeckSelected)
 	case waitingListMyCardsDeckName:
 		listCardsCallback(b, update)
+	case waitingStudyDeckName:
+		studyDeckCallback(b, update)
+	case waitingCardFeedback:
+		studyCardCallback(b, update, user)
 	default:
 		unknownCallback(b, update)
+	}
+}
+
+// studyDeckCallback is called when user chooses a deck they want to study
+// Basically study session begins here
+func studyDeckCallback(b *tgBot, update tgbotapi.Update) {
+
+	//Update user state to studying
+	if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingCardFeedback, DeckSelected: update.CallbackQuery.Data}); err != nil {
+		log.Printf("Error updating deck state: %v\n", err)
+	}
+
+	edit := b.studyRandomCard(update)
+	if _, err := b.bot.Send(edit); err != nil {
+		log.Printf("Error sending edit: %v\n", err)
+	}
+}
+
+func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
+	//If user pressed button to stop studying delete the message to get rid of an inline keyboard
+	switch update.CallbackQuery.Data {
+	case "stop":
+		b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
+	case "✅":
+		if err := db.UpdateCardState(user.CardSelected, user.DeckSelected, update.CallbackQuery.From.ID, true); err != nil {
+			log.Printf("Error updating card state: %v\n", err)
+		}
+
+		//Go for the next card
+		edit := b.studyRandomCard(update)
+		if _, err := b.bot.Send(edit); err != nil {
+			log.Printf("Error sending edit: %v\n", err)
+		}
+	case "❎":
+		//Go for the next card
+		edit := b.studyRandomCard(update)
+		if _, err := b.bot.Send(edit); err != nil {
+			log.Printf("Error sending edit: %v\n", err)
+		}
+	default:
+		//Default case happens when user asks to show the answer to the card
+
+		//Create buttons first
+		checkButton := tgbotapi.NewInlineKeyboardButtonData("✅", "✅")
+		crossButton := tgbotapi.NewInlineKeyboardButtonData("❎", "❎")
+
+		//Put both check and cross buttons in the same row
+		row := tgbotapi.NewInlineKeyboardRow(checkButton, crossButton)
+
+		//Create "Stop studying button in a separate row"
+		stopButton := tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(en.StopStudy, "stop"))
+
+		//Create a keyboard using previously created buttons
+		keyboard := tgbotapi.NewInlineKeyboardMarkup(row, stopButton)
+
+		//Create and send the edit
+		edit := tgbotapi.NewEditMessageTextAndMarkup(
+			update.CallbackQuery.Message.Chat.ID,
+			update.CallbackQuery.Message.MessageID,
+			update.CallbackQuery.Message.Text+"\n"+update.CallbackQuery.Data,
+			keyboard,
+		)
+		if _, err := b.bot.Send(edit); err != nil {
+			log.Printf("Error sending edit: %v\n", err)
+		}
+
 	}
 }
 

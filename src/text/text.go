@@ -30,6 +30,9 @@ type Messages struct {
 	NoCards           string
 	ErrorCreatingCard string
 	CreateDeckFirst   string
+	ShowAnswer        string
+	StopStudy         string
+	FinishedStudy     string
 }
 
 func LoadEnMessages() Messages {

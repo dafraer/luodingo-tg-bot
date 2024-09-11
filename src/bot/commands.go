@@ -222,7 +222,32 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 }
 
 func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
+	//Update user state to "waiting cards to study"
+	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingStudyDeckName}); err != nil {
+		log.Printf("Error updating user state: %v\n", err)
+	}
 
+	//Create a keyboard with deck names
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
+	if err != nil {
+		log.Printf("Error creating inline keyboard:%v\n", err)
+	}
+
+	//If user has no decks notify user
+	if decksAmount <= 0 {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
+		if _, err := b.bot.Send(msg); err != nil {
+			log.Printf("Error sending message: %v\n", err)
+		}
+		return
+	}
+
+	//Add created keyboard to the new message and send it
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
+	msg.ReplyMarkup = keyboard
+	if _, err := b.bot.Send(msg); err != nil {
+		log.Printf("Error sending message: %v\n", err)
+	}
 }
 
 func unknownCommand(b *tgBot, update tgbotapi.Update) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
+	"math/rand"
 )
 
 var en, ru text.Messages
@@ -65,4 +66,60 @@ func (b *tgBot) deleteMessage(chatId int64, messageId int) {
 	if _, err := b.bot.Send(deleteMessage); err != nil {
 		log.Printf("Error deleting message: %v\n", err)
 	}
+}
+
+// Creates a message with a card to study
+func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageTextConfig {
+	//Get user state to know what to know selected deck
+	user, err := db.GetUserState(update.CallbackQuery.From.ID)
+	if err != nil {
+		log.Printf("Error getting user state: %v\n", err)
+	}
+
+	//Get cards from the selected deck
+	cards, err := db.GetUnlearnedCards(user.DeckSelected, update.CallbackQuery.From.ID)
+	if err != nil {
+		log.Printf("Error getting cards: %v\n", err)
+	}
+
+	//If not enough cards tell the user
+	if len(cards) == 0 {
+		if err := db.UnlearnCards(user.DeckSelected, update.CallbackQuery.From.ID); err != nil {
+			log.Printf("Error unlearning cards: %v\n", err)
+		}
+
+		edit := tgbotapi.NewEditMessageText(
+			update.CallbackQuery.Message.Chat.ID,
+			update.CallbackQuery.Message.MessageID,
+			en.FinishedStudy,
+		)
+		return edit
+	}
+
+	//Pick a random card
+	card := cards[rand.Intn(len(cards))]
+
+	//Create buttons with 2 options:
+	//Show back of the card
+	//Stop studying
+	var buttons [][]tgbotapi.InlineKeyboardButton
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(en.ShowAnswer, fmt.Sprint(card.Back))))
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(en.StopStudy, "stop")))
+
+	//Created an inline keyboard with previously created buttons
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
+
+	//Edit already existing message to remove previous inline keyboard
+	edit := tgbotapi.NewEditMessageTextAndMarkup(
+		update.CallbackQuery.Message.Chat.ID,
+		update.CallbackQuery.Message.MessageID,
+		card.Front,
+		keyboard,
+	)
+
+	user.CardSelected = card.Front
+	if err := db.UpdateUserState(user); err != nil {
+		log.Printf("Error updating user state: %v\n", err)
+	}
+	return edit
 }

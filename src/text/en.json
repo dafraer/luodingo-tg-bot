@@ -20,5 +20,8 @@
   "NoDecks": "You don't have any decks",
   "NoCards": "This deck has no cards",
   "ErrorCreatingCard": "The error has occured when trying to create the card",
-  "CreateDeckFirst": "To add a card, you first need to create a deck"
+  "CreateDeckFirst": "To add a card, you first need to create a deck",
+  "ShowAnswer": "Show the answer",
+  "StopStudy": "Stop studying",
+  "FinishedStudy": "Congrats! You have studied all cards in this deck"
 }
