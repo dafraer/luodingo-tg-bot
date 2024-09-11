@@ -14,7 +14,7 @@ var en, ru text.Messages
 func (b *tgBot) Run() {
 	en = text.LoadEnMessages()
 	ru = text.LoadRuMessages()
-	for update := range b.updates {
+	for update := range b.Updates {
 		handleUpdates(b, update)
 	}
 }
@@ -63,7 +63,7 @@ func (b *tgBot) deleteMessage(chatId int64, messageId int) {
 		chatId,
 		messageId,
 	)
-	if _, err := b.bot.Send(deleteMessage); err != nil {
+	if _, err := b.Bot.Send(deleteMessage); err != nil {
 		log.Printf("Error deleting message: %v\n", err)
 	}
 }

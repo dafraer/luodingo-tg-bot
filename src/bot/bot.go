@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/zap"
 	"log"
 )
 
@@ -23,23 +24,31 @@ const (
 )
 
 type tgBot struct {
-	bot     *tgbotapi.BotAPI
-	updates tgbotapi.UpdatesChannel
+	Bot     *tgbotapi.BotAPI
+	Updates tgbotapi.UpdatesChannel
+	Logger  *zap.SugaredLogger
 }
 
 func New(token string, timeout int, offset int) *tgBot {
 	myBot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		panic(fmt.Errorf("error while creatinga new bot, %v ", err))
+		panic(fmt.Errorf("error while creatinga new Bot, %v ", err))
 	}
 
 	u := tgbotapi.NewUpdate(offset)
 	u.Timeout = timeout
-
 	updates := myBot.GetUpdatesChan(u)
+
+	logger, err := zap.NewDevelopment()
+	sugar := logger.Sugar()
+
+	if err != nil {
+		panic(fmt.Errorf("error while creating new Logger, %v ", err))
+	}
 	log.Printf("Authorized on account %s", myBot.Self.UserName)
 	return &tgBot{
-		bot:     myBot,
-		updates: updates,
+		Bot:     myBot,
+		Updates: updates,
+		Logger:  sugar,
 	}
 }

@@ -48,14 +48,14 @@ func startCommand(b *tgBot, update tgbotapi.Update) {
 
 	//Send start message
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.Start)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
 
 func helpCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.Help)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -68,7 +68,7 @@ func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 
 	//Send the next message to the user
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeckName)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -90,7 +90,7 @@ func newCardCommand(b *tgBot, update tgbotapi.Update) {
 	//If user has no decks prompt him to create one first
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CreateDeckFirst)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -100,7 +100,7 @@ func newCardCommand(b *tgBot, update tgbotapi.Update) {
 	msg.ReplyMarkup = keyboard
 
 	// Sending the message with the attached inline keyboard
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -114,7 +114,7 @@ func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 	//If no decks tell user that they have no decks
 	if len(decks) == 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CreateDeckFirst)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -126,7 +126,7 @@ func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 		table += fmt.Sprintf("%d. %v\n", i+1, v)
 	}
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, table)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -148,7 +148,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	//If user has no decks tell them that
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 	}
@@ -156,7 +156,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	//Prompt user to choose deck
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeckName)
 	msg.ReplyMarkup = keyboard
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -179,7 +179,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//If user has no decks let them now
 	if decksAmount == 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -187,7 +187,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 
 	// Sending the message with the attached inline keyboard
 	msg.ReplyMarkup = keyboard
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -207,7 +207,7 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	//If user has no decks tell them that
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -216,7 +216,7 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	//Create and send the message
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
 	msg.ReplyMarkup = keyboard
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -236,7 +236,7 @@ func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//If user has no decks notify user
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -245,14 +245,14 @@ func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Add created keyboard to the new message and send it
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
 	msg.ReplyMarkup = keyboard
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
 
 func unknownCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.UnknownCommand)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }

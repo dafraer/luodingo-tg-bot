@@ -32,7 +32,7 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 
 		//If creating the deck failed - notify the user
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ErrorCreatingDeck)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -40,7 +40,7 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 
 	//Notify the user that deck has been created successfully
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.DeckCreated)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -54,7 +54,7 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
 
 	//Prompt the user to choose back of the card
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseCardBack)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -78,7 +78,7 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 
 	//Notify the user about creating card
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CardCreated)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 
@@ -86,7 +86,7 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 
 func unknownMessage(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.UnknownMessage)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }

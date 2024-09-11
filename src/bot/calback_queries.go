@@ -43,7 +43,7 @@ func studyDeckCallback(b *tgBot, update tgbotapi.Update) {
 	}
 
 	edit := b.studyRandomCard(update)
-	if _, err := b.bot.Send(edit); err != nil {
+	if _, err := b.Bot.Send(edit); err != nil {
 		log.Printf("Error sending edit: %v\n", err)
 	}
 }
@@ -60,13 +60,13 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 
 		//Go for the next card
 		edit := b.studyRandomCard(update)
-		if _, err := b.bot.Send(edit); err != nil {
+		if _, err := b.Bot.Send(edit); err != nil {
 			log.Printf("Error sending edit: %v\n", err)
 		}
 	case "❎":
 		//Go for the next card
 		edit := b.studyRandomCard(update)
-		if _, err := b.bot.Send(edit); err != nil {
+		if _, err := b.Bot.Send(edit); err != nil {
 			log.Printf("Error sending edit: %v\n", err)
 		}
 	default:
@@ -92,7 +92,7 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 			update.CallbackQuery.Message.Text+"\n"+update.CallbackQuery.Data,
 			keyboard,
 		)
-		if _, err := b.bot.Send(edit); err != nil {
+		if _, err := b.Bot.Send(edit); err != nil {
 			log.Printf("Error sending edit: %v\n", err)
 		}
 
@@ -113,7 +113,7 @@ func listCardsCallback(b *tgBot, update tgbotapi.Update) {
 			update.CallbackQuery.Message.MessageID,
 			en.NoCards,
 		)
-		if _, err := b.bot.Send(edit); err != nil {
+		if _, err := b.Bot.Send(edit); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -131,7 +131,7 @@ func listCardsCallback(b *tgBot, update tgbotapi.Update) {
 		update.CallbackQuery.Message.MessageID,
 		table,
 	)
-	if _, err := b.bot.Send(edit); err != nil {
+	if _, err := b.Bot.Send(edit); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -147,7 +147,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 		log.Printf("Error deleting deck: %v\n", err)
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.ErrorDeletingDeck)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 	}
@@ -162,7 +162,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 		b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.DeckDeleted)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -174,11 +174,11 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 		update.CallbackQuery.Message.MessageID,
 		keyboard,
 	)
-	if _, err := b.bot.Send(edit); err != nil {
+	if _, err := b.Bot.Send(edit); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.DeckDeleted)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -199,7 +199,7 @@ func newCardCallback(b *tgBot, update tgbotapi.Update) {
 	)
 
 	//Send the edit
-	if _, err := b.bot.Send(edit); err != nil {
+	if _, err := b.Bot.Send(edit); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -223,7 +223,7 @@ func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 			update.CallbackQuery.Message.MessageID,
 			en.NoCards,
 		)
-		if _, err := b.bot.Send(edit); err != nil {
+		if _, err := b.Bot.Send(edit); err != nil {
 			log.Printf("Error sending edit: %v\n", err)
 		}
 		return
@@ -235,7 +235,7 @@ func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 		update.CallbackQuery.Message.MessageID,
 		keyboard,
 	)
-	if _, err := b.bot.Send(edit); err != nil {
+	if _, err := b.Bot.Send(edit); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
@@ -260,7 +260,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 		b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.CardDeleted)
-		if _, err := b.bot.Send(msg); err != nil {
+		if _, err := b.Bot.Send(msg); err != nil {
 			log.Printf("Error sending message: %v\n", err)
 		}
 		return
@@ -273,14 +273,14 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 		en.ChooseCard,
 		keyboard,
 	)
-	if _, err := b.bot.Send(edit); err != nil {
+	if _, err := b.Bot.Send(edit); err != nil {
 		log.Printf("Error sending edit: %v\n", err)
 		return
 	}
 
 	//Notify the user that card has been deleted successfully
 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.CardDeleted)
-	if _, err := b.bot.Send(msg); err != nil {
+	if _, err := b.Bot.Send(msg); err != nil {
 		log.Printf("Error sending message: %v\n", err)
 	}
 }
