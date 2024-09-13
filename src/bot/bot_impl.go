@@ -63,7 +63,7 @@ func (b *tgBot) deleteMessage(chatId int64, messageId int) {
 		messageId,
 	)
 	if _, err := b.Bot.Send(deleteMessage); err != nil {
-		b.Logger.Error("Error deleting message", err.Error())
+		b.Logger.Errorw("Error deleting message", "error", err.Error())
 	}
 }
 
@@ -72,19 +72,19 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageText
 	//Get user state to know what to know selected deck
 	user, err := db.GetUserState(update.CallbackQuery.From.ID)
 	if err != nil {
-		b.Logger.Error("Error getting user state", err.Error())
+		b.Logger.Errorw("Error getting user state", "error", err.Error())
 	}
 
 	//Get cards from the selected deck
 	cards, err := db.GetUnlearnedCards(user.DeckSelected, update.CallbackQuery.From.ID)
 	if err != nil {
-		b.Logger.Error("Error getting cards", err.Error())
+		b.Logger.Errorw("Error getting cards", "error", err.Error())
 	}
 
 	//If not enough cards tell the user
 	if len(cards) == 0 {
 		if err := db.UnlearnCards(user.DeckSelected, update.CallbackQuery.From.ID); err != nil {
-			b.Logger.Error("Error unlearning cards: ", err)
+			b.Logger.Errorw("Error unlearning cards", "error", err.Error())
 		}
 
 		edit := tgbotapi.NewEditMessageText(
@@ -118,7 +118,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageText
 
 	user.CardSelected = card.Front
 	if err := db.UpdateUserState(user); err != nil {
-		b.Logger.Error("Error updating user state", err.Error())
+		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 	return edit
 }
