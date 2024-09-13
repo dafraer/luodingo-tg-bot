@@ -6,11 +6,10 @@ import (
 	"flashcards-bot/src/db"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"log"
 )
 
 func processCommand(b *tgBot, update tgbotapi.Update) {
-	log.Printf("COMMAND: [%s] %s\n", update.Message.From.UserName, update.Message.Text)
+	b.Logger.Info("Command", update.Message.From.UserName, update.Message.Text)
 	switch update.Message.Command() {
 	case "start":
 		startCommand(b, update)
@@ -40,42 +39,42 @@ func startCommand(b *tgBot, update tgbotapi.Update) {
 	_, err := db.GetUserState(update.Message.From.ID)
 	if err != nil {
 		//TODO fix
-		log.Printf("Error getting user state: %s\n", err)
+		b.Logger.Error("Error getting user state", err.Error())
 		if err := db.CreateUser(db.User{TgUserId: update.Message.From.ID}); err != nil {
-			log.Printf("Error creating user: %v", err)
+			b.Logger.Error("Error creating user", err.Error())
 		}
 	}
 
 	//Send start message
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.Start)
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func helpCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.Help)
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to create new deck"
 	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewDeckName}); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 	}
 
 	//Send the next message to the user
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeckName)
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 func newCardCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck in which card should be created" and put deck name in there
 	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewCardDeckName}); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 	}
 
 	//Create a message
@@ -84,14 +83,14 @@ func newCardCommand(b *tgBot, update tgbotapi.Update) {
 	//Create an inline keyboard
 	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
-		log.Printf("Error creating a keyboard: %v\n", err)
+		b.Logger.Error("Error creating a keyboard", err.Error())
 	}
 
 	//If user has no decks prompt him to create one first
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CreateDeckFirst)
 		if _, err := b.Bot.Send(msg); err != nil {
-			log.Printf("Error sending message: %v\n", err)
+			b.Logger.Error("Error sending message", err.Error())
 		}
 		return
 	}
@@ -101,21 +100,21 @@ func newCardCommand(b *tgBot, update tgbotapi.Update) {
 
 	// Sending the message with the attached inline keyboard
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 	//Get decks from db
 	decks, err := db.GetDecks(update.Message.From.ID)
 	if err != nil {
-		log.Printf("Error getting decks from db: %v", err)
+		b.Logger.Error("Error getting decks from db", err.Error())
 	}
 
 	//If no decks tell user that they have no decks
 	if len(decks) == 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CreateDeckFirst)
 		if _, err := b.Bot.Send(msg); err != nil {
-			log.Printf("Error sending message: %v\n", err)
+			b.Logger.Error("Error sending message", err.Error())
 		}
 		return
 	}
@@ -127,21 +126,21 @@ func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 	}
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, table)
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to delete"
 	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingListMyCardsDeckName}); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 		return
 	}
 
 	//Create a keyboard with decks
 	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
-		log.Printf("Error creating a keyboard: %v\n", err)
+		b.Logger.Error("Error creating a keyboard", err.Error())
 		return
 	}
 
@@ -149,7 +148,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
 		if _, err := b.Bot.Send(msg); err != nil {
-			log.Printf("Error sending message: %v\n", err)
+			b.Logger.Error("Error sending message", err.Error())
 		}
 	}
 
@@ -157,14 +156,14 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeckName)
 	msg.ReplyMarkup = keyboard
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to delete"
 	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingDeleteDeckName}); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 	}
 
 	//Create a new message
@@ -173,14 +172,14 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Create a new keyboard with decks to choose from
 	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
-		log.Printf("Error getting decks:%v\n", err)
+		b.Logger.Error("Error getting decks", err.Error())
 	}
 
 	//If user has no decks let them now
 	if decksAmount == 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
 		if _, err := b.Bot.Send(msg); err != nil {
-			log.Printf("Error sending message: %v\n", err)
+			b.Logger.Error("Error sending message", err.Error())
 		}
 		return
 	}
@@ -188,27 +187,27 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	// Sending the message with the attached inline keyboard
 	msg.ReplyMarkup = keyboard
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck to delete a card from"
 	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingDeleteCardDeckName}); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 	}
 
 	//Create  a keyboard with decks to choose from
 	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
-		log.Printf("Error creating inline keyboard:%v\n", err)
+		b.Logger.Error("Error creating inline keyboard")
 	}
 
 	//If user has no decks tell them that
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
 		if _, err := b.Bot.Send(msg); err != nil {
-			log.Printf("Error sending message: %v\n", err)
+			b.Logger.Error("Error sending message", err.Error())
 		}
 		return
 	}
@@ -217,27 +216,27 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
 	msg.ReplyMarkup = keyboard
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting cards to study"
 	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingStudyDeckName}); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 	}
 
 	//Create a keyboard with deck names
 	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID)
 	if err != nil {
-		log.Printf("Error creating inline keyboard:%v\n", err)
+		b.Logger.Error("Error creating inline keyboard")
 	}
 
 	//If user has no decks notify user
 	if decksAmount <= 0 {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
 		if _, err := b.Bot.Send(msg); err != nil {
-			log.Printf("Error sending message: %v\n", err)
+			b.Logger.Error("Error sending message", err.Error())
 		}
 		return
 	}
@@ -246,13 +245,13 @@ func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseDeck)
 	msg.ReplyMarkup = keyboard
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }
 
 func unknownCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.UnknownCommand)
 	if _, err := b.Bot.Send(msg); err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		b.Logger.Error("Error sending message", err.Error())
 	}
 }

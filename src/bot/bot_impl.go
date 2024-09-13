@@ -5,7 +5,6 @@ import (
 	"flashcards-bot/src/text"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"log"
 	"math/rand"
 )
 
@@ -64,7 +63,7 @@ func (b *tgBot) deleteMessage(chatId int64, messageId int) {
 		messageId,
 	)
 	if _, err := b.Bot.Send(deleteMessage); err != nil {
-		log.Printf("Error deleting message: %v\n", err)
+		b.Logger.Error("Error deleting message", err.Error())
 	}
 }
 
@@ -73,19 +72,19 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageText
 	//Get user state to know what to know selected deck
 	user, err := db.GetUserState(update.CallbackQuery.From.ID)
 	if err != nil {
-		log.Printf("Error getting user state: %v\n", err)
+		b.Logger.Error("Error getting user state", err.Error())
 	}
 
 	//Get cards from the selected deck
 	cards, err := db.GetUnlearnedCards(user.DeckSelected, update.CallbackQuery.From.ID)
 	if err != nil {
-		log.Printf("Error getting cards: %v\n", err)
+		b.Logger.Error("Error getting cards", err.Error())
 	}
 
 	//If not enough cards tell the user
 	if len(cards) == 0 {
 		if err := db.UnlearnCards(user.DeckSelected, update.CallbackQuery.From.ID); err != nil {
-			log.Printf("Error unlearning cards: %v\n", err)
+			b.Logger.Error("Error unlearning cards: ", err)
 		}
 
 		edit := tgbotapi.NewEditMessageText(
@@ -119,7 +118,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageText
 
 	user.CardSelected = card.Front
 	if err := db.UpdateUserState(user); err != nil {
-		log.Printf("Error updating user state: %v\n", err)
+		b.Logger.Error("Error updating user state", err.Error())
 	}
 	return edit
 }

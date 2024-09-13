@@ -15,6 +15,7 @@ func main() {
 	}
 
 	myBot := bot.New(config.BotConfig.Token, config.BotConfig.Timeout, config.BotConfig.Offset)
+	myBot.Logger.Info("Authorised on account", myBot.Bot.Self.UserName)
 	myBot.Run()
 
 	if err := db.Disconnect(); err != nil {

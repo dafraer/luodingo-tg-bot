@@ -4,7 +4,6 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
-	"log"
 )
 
 const (
@@ -45,7 +44,6 @@ func New(token string, timeout int, offset int) *tgBot {
 	if err != nil {
 		panic(fmt.Errorf("error while creating new Logger, %v ", err))
 	}
-	log.Printf("Authorized on account %s", myBot.Self.UserName)
 	return &tgBot{
 		Bot:     myBot,
 		Updates: updates,
