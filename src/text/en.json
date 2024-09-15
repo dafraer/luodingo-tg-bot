@@ -9,7 +9,7 @@
   "ErrorCreatingDeck": "The error has occurred when trying to create a deck",
   "ErrorDeletingDeck": "The error has occurred when trying to delete the deck",
   "CardDeleted": "The card has been successfully deleted.",
-  "DeckCreated": "Your new deck has been created! Start adding cards to it now.",
+  "DeckCreated": "Your new deck has been created! Start adding cards to it now. /add_cards",
   "CardCreated": "Your new cards have been added to the deck.",
   "ChooseDeckName": "Please enter a name for your new deck:",
   "ChooseCardFront": "Please enter the front text for your new flashcard, press 'Done' if you dont want to add any more cards",

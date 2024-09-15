@@ -61,9 +61,19 @@ func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot) (keyboar
 }
 
 func (b *tgBot) deleteMessage(chatId int64, messageId int) {
+	//Delete message
 	deleteMessage := tgbotapi.NewDeleteMessage(chatId, messageId)
 	if _, err := b.Bot.Request(deleteMessage); err != nil {
 		b.Logger.Errorw("Error deleting message", "error", err.Error())
+	}
+	b.Logger.Debugw("Delete message queue", "chatId", chatId, "messageId", messageId, "len", len(b.DeleteQueue))
+
+	//Clear delete queue
+	for _, msgId := range b.DeleteQueue {
+		deleteMessage := tgbotapi.NewDeleteMessage(chatId, msgId)
+		if _, err := b.Bot.Request(deleteMessage); err != nil {
+			b.Logger.Errorw("Error deleting message", "error", err.Error())
+		}
 	}
 }
 

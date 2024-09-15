@@ -322,7 +322,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 // stopCallback stops the process of adding new cards
 func doneCallback(b *tgBot, update tgbotapi.Update) {
 	//Notify the user about creating card
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CardCreated)
+	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.CardCreated)
 	if _, err := b.Bot.Send(msg); err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}

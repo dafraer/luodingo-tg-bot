@@ -18,14 +18,14 @@ const (
 	waitingNewCardFront        //Waiting for a  card's front to create new card
 	waitingNewCardBack         //Waiting for a card's back to create new card
 	waitingStudyDeckName       //Waiting for a deck name to study
-	waitingFlipCard            //Waiting for user to flip the card he is studying
 	waitingCardFeedback        //Waiting for user to pick if he learned the card or no
 )
 
 type tgBot struct {
-	Bot     *tgbotapi.BotAPI
-	Updates tgbotapi.UpdatesChannel
-	Logger  *zap.SugaredLogger
+	Bot         *tgbotapi.BotAPI
+	Updates     tgbotapi.UpdatesChannel
+	DeleteQueue []int //Queue to delete messages with inline keyboards
+	Logger      *zap.SugaredLogger
 }
 
 func New(token string, timeout int, offset int) *tgBot {

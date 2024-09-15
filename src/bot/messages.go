@@ -115,7 +115,7 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Update user state
-	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardFront, DeckSelected: " ", CardSelected: " "}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardFront, CardSelected: " "}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -125,9 +125,13 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 	//Prompt to add another one
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseCardFront)
 	msg.ReplyMarkup = keyboard
-	if _, err := b.Bot.Send(msg); err != nil {
+	sentMessage, err := b.Bot.Send(msg)
+	if err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}
+
+	//Add message to the delete queue to make sure that inline keyboard will be deleted later
+	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
 
 }
 

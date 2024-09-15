@@ -95,9 +95,13 @@ func addCardsCommand(b *tgBot, update tgbotapi.Update) {
 	msg.ReplyMarkup = keyboard
 
 	// Sending the message with the attached inline keyboard
-	if _, err := b.Bot.Send(msg); err != nil {
+	sentMessage, err := b.Bot.Send(msg)
+	if err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}
+
+	//Add sent message to delete queue to make sure that inline keyboard is deleted later
+	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
 }
 func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 	//Get decks from db
