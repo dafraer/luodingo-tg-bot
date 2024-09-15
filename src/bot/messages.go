@@ -7,9 +7,10 @@ import (
 
 func processMessage(b *tgBot, update tgbotapi.Update) {
 	b.Logger.Infow("Message", "from", update.Message.From.UserName, "body", update.Message.Text)
-	user, err := db.GetUserState(update.Message.From.ID)
+	user, err := db.GetUser(update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
+		return
 	}
 	switch user.State {
 	case waitingNewDeckName:
@@ -26,7 +27,7 @@ func processMessage(b *tgBot, update tgbotapi.Update) {
 
 func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 	//Creating the deck in the database
-	if err := db.CreateDeck(update.Message.Text, update.Message.From.ID); err != nil {
+	if err := db.CreateDeck(&db.Deck{Name: update.Message.Text, TgUserId: update.Message.From.ID, CardsAmount: 0}); err != nil {
 		b.Logger.Errorw("Error creating deck", "error", err.Error())
 
 		//If creating the deck failed - notify the user
@@ -47,7 +48,7 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
 
 	//Update user state to "waiting for back side of the card" and put front card in there
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: update.Message.Text}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: update.Message.Text}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -60,18 +61,18 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
 
 func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 	//Get user data
-	user, err := db.GetUserState(update.Message.From.ID)
+	user, err := db.GetUser(update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
 	}
 
 	//Create the card in the db
-	if err := db.CreateCard(user.DeckSelected, user.TgUserId, user.CardSelected, update.Message.Text); err != nil {
+	if err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: user.CardSelected, Back: update.Message.Text}); err != nil {
 		b.Logger.Errorw("Error creating deck", "error", err.Error())
 	}
 
 	//Update user state
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: defaultState, DeckSelected: " ", CardSelected: " "}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: defaultState, DeckSelected: " ", CardSelected: " "}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 

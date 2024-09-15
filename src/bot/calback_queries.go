@@ -8,9 +8,10 @@ import (
 
 func processCallback(b *tgBot, update tgbotapi.Update) {
 	b.Logger.Infow("Callback query", "from", update.CallbackQuery.From.UserName, "data", update.CallbackQuery.Data)
-	user, err := db.GetUserState(update.CallbackQuery.From.ID)
+	user, err := db.GetUser(update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
+		return
 	}
 	switch user.State {
 	case waitingDeleteDeckName:
@@ -26,7 +27,7 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 	case waitingStudyDeckName:
 		studyDeckCallback(b, update)
 	case waitingCardFeedback:
-		studyCardCallback(b, update, user)
+		studyCardCallback(b, update, *user)
 	default:
 		unknownCallback(b, update)
 	}
@@ -37,11 +38,15 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 func studyDeckCallback(b *tgBot, update tgbotapi.Update) {
 
 	//Update user state to studying
-	if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingCardFeedback, DeckSelected: update.CallbackQuery.Data}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingCardFeedback, DeckSelected: update.CallbackQuery.Data}); err != nil {
 		b.Logger.Errorw("Error updating deck state", "error", err.Error())
 	}
 
-	edit := b.studyRandomCard(update)
+	edit, err := b.studyRandomCard(update)
+	if err != nil {
+		b.Logger.Errorw("Error getting edit with random card", "error", err.Error())
+		return
+	}
 	if _, err := b.Bot.Send(edit); err != nil {
 		b.Logger.Errorw("Error sending edit", "error", err.Error())
 	}
@@ -53,18 +58,28 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 	case "stop":
 		b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
 	case "✅":
-		if err := db.UpdateCardState(user.CardSelected, user.DeckSelected, update.CallbackQuery.From.ID, true); err != nil {
+		if err := db.UpdateCard(user.DeckSelected, update.CallbackQuery.From.ID, user.CardSelected, true); err != nil {
 			b.Logger.Errorw("Error updating card state", "error", err.Error())
 		}
 
 		//Go for the next card
-		edit := b.studyRandomCard(update)
+		edit, err := b.studyRandomCard(update)
+		if err != nil {
+			b.Logger.Errorw("Error getting edit with random card", "error", err.Error())
+			return
+		}
+
 		if _, err := b.Bot.Send(edit); err != nil {
 			b.Logger.Errorw("Error sending edit", "error", err.Error())
 		}
 	case "❎":
 		//Go for the next card
-		edit := b.studyRandomCard(update)
+		edit, err := b.studyRandomCard(update)
+		if err != nil {
+			b.Logger.Errorw("Error getting edit with random card", "error", err.Error())
+			return
+		}
+
 		if _, err := b.Bot.Send(edit); err != nil {
 			b.Logger.Errorw("Error sending edit", "error", err.Error())
 		}
@@ -85,10 +100,13 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(row, stopButton)
 
 		//Create and send the edit
+		//TODO remake this shit so its normal and not fucking bullshit
+
 		edit := tgbotapi.NewEditMessageTextAndMarkup(
 			update.CallbackQuery.Message.Chat.ID,
 			update.CallbackQuery.Message.MessageID,
-			update.CallbackQuery.Message.Text+"\n"+update.CallbackQuery.Data,
+			//TODO remake this with stringbuilder
+			user.CardSelected+"\n————————————————————\n"+update.CallbackQuery.Data,
 			keyboard,
 		)
 		if _, err := b.Bot.Send(edit); err != nil {
@@ -142,7 +160,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	name := update.CallbackQuery.Data
 
 	//Delete the deck
-	if err := db.DeleteDeck(name, update.CallbackQuery.From.ID); err != nil {
+	if err := db.DeleteDeck(&db.Deck{Name: name, TgUserId: update.CallbackQuery.From.ID}); err != nil {
 		b.Logger.Errorw("Error deleting deck", "error", err.Error())
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.ErrorDeletingDeck)
@@ -188,7 +206,7 @@ func unknownCallback(b *tgBot, update tgbotapi.Update) {
 
 func newCardCallback(b *tgBot, update tgbotapi.Update) {
 	//Update the user state to "waiting card front"
-	if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingNewCardFront, DeckSelected: update.CallbackQuery.Data}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingNewCardFront, DeckSelected: update.CallbackQuery.Data}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 	//Edit the message
@@ -206,12 +224,14 @@ func newCardCallback(b *tgBot, update tgbotapi.Update) {
 
 // deckDeleteCardCallback selects a deck in user state and sends an inline keyboard with cards to user
 func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
-	if err := db.UpdateUserState(db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingDeleteCardCardName, DeckSelected: update.CallbackQuery.Data}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingDeleteCardCardName, DeckSelected: update.CallbackQuery.Data}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
 	//Create inline keyboard of cards in a selected deck
-	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, update.CallbackQuery.Data)
+	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", update.CallbackQuery.Data, "tg_user_id", update.CallbackQuery.From.ID)
+	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, update.CallbackQuery.Data, b)
+	b.Logger.Debugw("Created inline keyboard with cards", "cards amount", cardsAmount, "error", err)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
 	}
@@ -243,13 +263,20 @@ func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 // cardDeleteCard deletes card
 func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 	//Delete card
-	if err := db.DeleteCard(deckName, update.CallbackQuery.From.ID, update.CallbackQuery.Data); err != nil {
+	b.Logger.Debugw("Deleting card", "deck name", deckName, "card id", update.CallbackQuery.Data)
+	user, err := db.GetUser(update.CallbackQuery.From.ID)
+	if err != nil {
+		b.Logger.Errorw("Error getting user", "error", err.Error())
+		return
+	}
+	if err := db.DeleteCard(update.CallbackQuery.Data, user.DeckSelected, user.TgUserId); err != nil {
 		b.Logger.Error("Error deleting card", err.Error())
 		return
 	}
 
 	//Create a new inline keyboard without the deleted card
-	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, deckName)
+	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", deckName, "tg_user_id", update.CallbackQuery.From.ID)
+	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, deckName, b)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
 		return

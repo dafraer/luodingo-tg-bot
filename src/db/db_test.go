@@ -32,10 +32,10 @@ func TestDeck(t *testing.T) {
 		}
 	}()
 
-	if err := CreateDeck("spanish", 1); err != nil {
+	if err := CreateDeck(&Deck{TgUserId: 1, Name: "spanish"}); err != nil {
 		t.Fatalf("unable to create deck: %v", err)
 	}
-	if err := UpdateDeck(Deck{Name: "spanish", TgUserId: 1}, Deck{Name: "english", TgUserId: 1}); err != nil {
+	if err := UpdateDeck(&Deck{Name: "spanish", TgUserId: 1}, &Deck{Name: "english", TgUserId: 1}); err != nil {
 		t.Fatalf("unable to update deck: %v", err)
 	}
 	deck, err := GetDecks(1)
@@ -51,7 +51,7 @@ func TestDeck(t *testing.T) {
 	if deck[0].Name != "english" {
 		t.Fatalf("deck does not contain name english, got %s", deck[0].Name)
 	}
-	if err := DeleteDeck("english", 1); err != nil {
+	if err := DeleteDeck(&Deck{TgUserId: 1, Name: "english"}); err != nil {
 		t.Fatalf("unable to delete deck: %v", err)
 	}
 	deck, err = GetDecks(1)
@@ -77,10 +77,10 @@ func TestCard(t *testing.T) {
 		}
 	}()
 
-	if err := CreateDeck("spanish", 1); err != nil {
+	if err := CreateDeck(&Deck{TgUserId: 1, Name: "spanish"}); err != nil {
 		t.Fatalf("unable to create deck: %v", err)
 	}
-	if err := CreateCard("spanish", 1, "hola", "hello"); err != nil {
+	if err := CreateCard("spanish", 1, &Card{Front: "hola", Back: "hello"}); err != nil {
 		t.Fatalf("unable to create card: %v", err)
 	}
 	cards, err := GetCards("spanish", 1)

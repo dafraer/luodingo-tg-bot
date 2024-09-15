@@ -1,141 +1,102 @@
 package db
 
-import (
-	"errors"
-	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-)
-
-var db *gorm.DB
-
-func Connect(host, user, password, name, port string) (err error) {
-	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", host, user, password, name, port)
-	db, err = gorm.Open(postgres.Open(dsn))
-	if err != nil {
-		return
-	}
-	err = db.AutoMigrate(&User{}, &Deck{}, &Card{})
-	return
-}
-
-func Disconnect() (err error) {
-	sqlDB, err := db.DB()
-	if err != nil {
-		return
-	}
-	// Close the connection
-	err = sqlDB.Close()
-	return
-}
-
-func CreateDeck(name string, userId int64) (err error) {
-	result := db.Table("decks").Create(&Deck{TgUserId: userId, Name: name, CardsAmount: 0})
+func CreateDeck(deck *Deck) (err error) {
+	result := db.Exec("INSERT INTO decks (tg_user_id, name, cards_amount) VALUES (?, ?, ?);", deck.TgUserId, deck.Name, deck.CardsAmount)
 	return result.Error
 }
 
+// GetDecks gets decks by user id
 func GetDecks(userId int64) (decks []Deck, err error) {
-	result := db.Table("decks").Where("tg_user_id = ?", userId).Find(&decks)
+	result := db.Raw("SELECT * FROM decks WHERE tg_user_id = ?;", userId).Scan(&decks)
 	return decks, result.Error
 }
 
-func UpdateDeck(oldDeck, newDeck Deck) (err error) {
-	result := db.Table("decks").Where("name = ? and tg_user_id = ?", oldDeck.Name, oldDeck.TgUserId).Updates(newDeck)
+// UpdateDeck updates deck's name
+func UpdateDeck(oldDeck, newDeck *Deck) (err error) {
+	result := db.Exec("UPDATE decks SET name = ? WHERE tg_user_id = ? AND name = ?;", newDeck.Name, oldDeck.TgUserId, oldDeck.Name)
 	return result.Error
 }
 
-func DeleteDeck(name string, userId int64) (err error) {
-	//Find deck id
-	var deck Deck
-	result := db.Table("decks").Select("id").Find(&deck, "name = ? and tg_user_id = ?", name, userId)
+// DeleteDeck deletes deck based on deck's name and telegram id of tha user
+func DeleteDeck(deck *Deck) (err error) {
+	//Delete all card related to the deck
+	result := db.Exec(`DELETE FROM cards USING decks WHERE decks.id = cards.deck_id AND decks.tg_user_id = ? AND decks.name = ?;`, deck.TgUserId, deck.Name)
 	if result.Error != nil {
 		return result.Error
 	}
-	//Delete all cards of that deck
-	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("deck_id = ?", deck.Id).Delete(&Card{})
-	if result.Error != nil {
-		return result.Error
-	}
+
 	//Delete the deck
-	result = db.Table("decks").Where("name = ? and tg_user_id = ?", name, userId).Delete(&Deck{})
-	err = result.Error
-	return
-}
-
-func CreateCard(deckName string, userId int64, front, back string) (err error) {
-	//TODO: make this work in 1 request
-	var deck Deck
-	result := db.Table("decks").Find(&deck, "name = ? and tg_user_id = ?", deckName, userId)
-	if result.Error != nil {
-		return result.Error
-	}
-	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Create(&Card{DeckId: deck.Id, Front: front, Back: back, Learned: false})
-	if result.Error != nil {
-		return result.Error
-	}
-
-	//Increase amount of cards in the deck
-	deck.CardsAmount++
-	db.Table("decks").Where("name = ? and tg_user_id = ?", deckName, userId).Updates(&deck)
+	db.Exec("DELETE FROM decks WHERE tg_user_id = ? AND name = ?;", deck.TgUserId, deck.Name)
 	return result.Error
 }
 
+// CreateCard creates card using deck name, tg_user_id and card struct
+func CreateCard(deckName string, userId int64, card *Card) (err error) {
+	result := db.Exec("INSERT INTO cards (deck_id, front, back, learned) VALUES ((SELECT id FROM decks WHERE name = ? AND tg_user_id = ?), ?, ?, ?);", deckName, userId, card.Front, card.Back, card.Learned)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	//Increment amount of cards in the deck
+	result = db.Exec("UPDATE decks SET cards_amount = cards_amount + 1 WHERE name = ? AND tg_user_id = ?;", deckName, userId)
+	return result.Error
+}
+
+// GetCards returns card from a single deck based on deck name and tg_user_id
 func GetCards(deckName string, userId int64) (cards []Card, err error) {
-	result := db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("decks.name = ? and decks.tg_user_id = ?", deckName, userId).Find(&cards)
+	result := db.Raw("SELECT cards.id, cards.deck_id, front, back, learned FROM cards JOIN decks ON decks.id = cards.deck_id WHERE decks.name = ? AND decks.tg_user_id = ?;", deckName, userId).Scan(&cards)
 	return cards, result.Error
 }
 
+// GetUnlearnedCards returns only unlearned cards from a single deck based on deck name and tg_user_id
 func GetUnlearnedCards(deckName string, userId int64) (cards []Card, err error) {
-	result := db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("decks.name = ? and decks.tg_user_id = ? and learned = false", deckName, userId).Find(&cards)
+	result := db.Raw("SELECT * FROM cards JOIN decks ON decks.id = cards.deck_id WHERE decks.name = ? AND decks.tg_user_id = ? AND learned = false;", deckName, userId).Scan(&cards)
 	return cards, result.Error
 }
 
-func UpdateCardState(front string, deckName string, userId int64, learned bool) (err error) {
-	var deck Deck
-	result := db.Table("decks").Where("tg_user_id = ? and name = ?", userId, deckName).Find(&deck)
-	if result.Error != nil {
-		return result.Error
-	}
-	result = db.Table("cards").Where("front = ? and deck_id = ?", front, deck.Id).Updates(Card{DeckId: deck.Id, Learned: learned})
+// UpdateCard changes card status to either learned or unlearned
+func UpdateCard(deckName string, userId int64, front string, learned bool) (err error) {
+	result := db.Exec("UPDATE cards SET learned = ? FROM decks WHERE decks.id = cards.deck_id AND cards.front = ? AND decks.tg_user_id = ? AND decks.name = ?;", learned, front, userId, deckName)
 	return result.Error
 }
 
+// UnlearnCards sets 'learned' field of all cards in a single to deck to false
 func UnlearnCards(deckName string, userId int64) (err error) {
-	var deck Deck
-	result := db.Table("decks").Where("tg_user_id = ? and name = ?", userId, deckName).Find(&deck)
-	if result.Error != nil {
-		return result.Error
-	}
-
-	result = db.Table("cards").Where("deck_id = ?", deck.Id).Updates(map[string]interface{}{"learned": false})
+	result := db.Exec("UPDATE cards SET learned = false FROM decks WHERE decks.id = cards.deck_id AND decks.name = ? AND decks.tg_user_id = ?;", deckName, userId)
 	return result.Error
 }
 
-func DeleteCard(deckName string, userId int64, cardId string) (err error) {
-	//TODO: make this work in 1 request
-	var deck Deck
-	result := db.Table("decks").Select("id").Find(&deck, "name = ? and tg_user_id = ?", deckName, userId)
+// DeleteCard deletes card by id, cards amount ion decremented based on deck name and tg_user_id
+func DeleteCard(cardId, deckName string, userId int64) (err error) {
+	result := db.Exec("DELETE FROM cards WHERE id = ?", cardId)
 	if result.Error != nil {
 		return result.Error
 	}
-	result = db.Table("cards").Joins("JOIN decks on decks.id = cards.deck_id").Where("deck_id = ? and cards.id = ?", deck.Id, cardId).Delete(&Card{})
+	//Decrement amount of cards in the deck
+	result = db.Exec("UPDATE decks SET cards_amount = cards_amount - 1 WHERE name = ? AND tg_user_id = ?;", deckName, userId)
 	return result.Error
 }
 
-func GetUserState(userId int64) (user User, err error) {
-	result := db.Table("users").Find(&user, "tg_user_id = ?", userId)
+// GetUser returns user based on tg_user_id
+func GetUser(userId int64) (user *User, err error) {
+	result := db.Raw("SELECT * FROM users WHERE tg_user_id = ?;", userId).Scan(&user)
 	if result.RowsAffected == 0 {
-		return User{}, errors.New("user not found")
+		if err := CreateUser(&User{TgUserId: userId, State: 1}); err != nil {
+			return &User{}, err
+		}
+		return &User{TgUserId: userId, State: 1}, result.Error
 	}
 	return user, result.Error
 }
 
-func UpdateUserState(user User) (err error) {
+// UpdateUser updates user based on non nil fields of User struct
+func UpdateUser(user *User) (err error) {
 	result := db.Table("users").Where("tg_user_id = ?", user.TgUserId).Updates(user)
 	return result.Error
 }
 
-func CreateUser(user User) (err error) {
+// CreateUser creates user based on struct
+func CreateUser(user *User) (err error) {
 	result := db.Table("users").Create(&user)
 	return result.Error
 }

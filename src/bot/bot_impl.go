@@ -43,14 +43,17 @@ func createDecksInlineKeyboard(userId int64) (keyboard tgbotapi.InlineKeyboardMa
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
 }
 
-func createCardsInlineKeyboard(userId int64, deckName string) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
+func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
 	//Get cards from database
 	cards, err := db.GetCards(deckName, userId)
+
+	b.Logger.Debugw("Got cards list", "cards", cards, "error", err)
 
 	//Create buttons with front-back of a card shown to the user and card id sent as a callback data
 	var buttons [][]tgbotapi.InlineKeyboardButton
 	for _, v := range cards {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%s-%s", v.Front, v.Back), fmt.Sprint(v.Id))))
+		b.Logger.Debugw("Created new button", "message", fmt.Sprintf("%s-%s", v.Front, v.Back), "data", fmt.Sprint(v.Id))
 	}
 
 	//Return the keyboard with created buttons
@@ -58,21 +61,19 @@ func createCardsInlineKeyboard(userId int64, deckName string) (keyboard tgbotapi
 }
 
 func (b *tgBot) deleteMessage(chatId int64, messageId int) {
-	deleteMessage := tgbotapi.NewDeleteMessage(
-		chatId,
-		messageId,
-	)
-	if _, err := b.Bot.Send(deleteMessage); err != nil {
+	deleteMessage := tgbotapi.NewDeleteMessage(chatId, messageId)
+	if _, err := b.Bot.Request(deleteMessage); err != nil {
 		b.Logger.Errorw("Error deleting message", "error", err.Error())
 	}
 }
 
 // Creates a message with a card to study
-func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageTextConfig {
+func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTextConfig, error) {
 	//Get user state to know what to know selected deck
-	user, err := db.GetUserState(update.CallbackQuery.From.ID)
+	user, err := db.GetUser(update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
+		return tgbotapi.EditMessageTextConfig{}, err
 	}
 
 	//Get cards from the selected deck
@@ -92,7 +93,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageText
 			update.CallbackQuery.Message.MessageID,
 			en.FinishedStudy,
 		)
-		return edit
+		return edit, nil
 	}
 
 	//Pick a random card
@@ -112,13 +113,13 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) tgbotapi.EditMessageText
 	edit := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		card.Front,
+		card.Front+"\n————————————————————",
 		keyboard,
 	)
 
 	user.CardSelected = card.Front
-	if err := db.UpdateUserState(user); err != nil {
+	if err := db.UpdateUser(user); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
-	return edit
+	return edit, nil
 }

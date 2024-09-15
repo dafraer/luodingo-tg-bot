@@ -9,7 +9,7 @@ import (
 )
 
 func processCommand(b *tgBot, update tgbotapi.Update) {
-	b.Logger.Infow("Command received", "from", update.Message.From.UserName, "body", update.Message.Text)
+	b.Logger.Infow("Command", "from", update.Message.From.UserName, "body", update.Message.Text)
 	switch update.Message.Command() {
 	case "start":
 		startCommand(b, update)
@@ -36,13 +36,9 @@ func processCommand(b *tgBot, update tgbotapi.Update) {
 
 func startCommand(b *tgBot, update tgbotapi.Update) {
 	//Create new user if it does not exist
-	_, err := db.GetUserState(update.Message.From.ID)
+	_, err := db.GetUser(update.Message.From.ID)
 	if err != nil {
-		//TODO fix
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
-		if err := db.CreateUser(db.User{TgUserId: update.Message.From.ID}); err != nil {
-			b.Logger.Errorw("Error creating user", "error", err.Error())
-		}
 	}
 
 	//Send start message
@@ -61,7 +57,7 @@ func helpCommand(b *tgBot, update tgbotapi.Update) {
 
 func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to create new deck"
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewDeckName}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -73,7 +69,7 @@ func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 }
 func newCardCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck in which card should be created" and put deck name in there
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingNewCardDeckName}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -112,7 +108,7 @@ func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 
 	//If no decks tell user that they have no decks
 	if len(decks) == 0 {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CreateDeckFirst)
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.NoDecks)
 		if _, err := b.Bot.Send(msg); err != nil {
 			b.Logger.Errorw("Error sending message", "error", err.Error())
 		}
@@ -132,7 +128,7 @@ func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 
 func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to delete"
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingListMyCardsDeckName}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingListMyCardsDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 		return
 	}
@@ -162,7 +158,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 
 func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to delete"
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingDeleteDeckName}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingDeleteDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -193,7 +189,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 
 func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck to delete a card from"
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingDeleteCardDeckName}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingDeleteCardDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -222,7 +218,7 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 
 func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting cards to study"
-	if err := db.UpdateUserState(db.User{TgUserId: update.Message.From.ID, State: waitingStudyDeckName}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingStudyDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
