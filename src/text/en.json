@@ -1,6 +1,6 @@
 {
   "Start": "Welcome to LuoDingo flashcards Bot! I'm here to help you study new words with flashcards. Use /help to see available commands.",
-  "Help": "Here are the commands you can use:\n\n/start - Start the bot\n/new_deck - Create a new deck\n/new_card - Create a new card\n/my_decks - List all your decks\n/my_cards - List all cards in a deck\n/delete_deck - Delete a deck\n/delete_card - Delete a card\n/study_deck - Study a specific deck\n/stats - Show your stats",
+  "Help": "Here are the commands you can use:\n\n/start - Start the bot\n/new_deck - Create a new deck\n/add_cards - Add new cards to the deck\n/my_decks - List all your decks\n/my_cards - List all cards in a deck\n/delete_deck - Delete a deck\n/delete_card - Delete a card\n/study_deck - Study a specific deck\n/stats - Show your stats",
   "ChooseDeck": "Please choose a deck from the list below:",
   "ChooseCard": "Please choose a card from the selected deck:",
   "ListDecks": "Here are your current decks:\n",
@@ -12,7 +12,7 @@
   "DeckCreated": "Your new deck has been created! Start adding cards to it now.",
   "CardCreated": "Your new card has been added to the deck.",
   "ChooseDeckName": "Please enter a name for your new deck:",
-  "ChooseCardFront": "Please enter the front text for your new flashcard",
+  "ChooseCardFront": "Please enter the front text for your new flashcard, press 'Done' if you dont want to add any more cards",
   "ChooseCardBack" : "Please enter the back text for your new flashcard",
   "UnknownMessage": "Sorry, I don`t understand this message",
   "UnknownCommand": "Sorry I don't understand this command",

@@ -28,6 +28,8 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		studyDeckCallback(b, update)
 	case waitingCardFeedback:
 		studyCardCallback(b, update, *user)
+	case waitingNewCardBack:
+		stopCallback(b, update)
 	default:
 		unknownCallback(b, update)
 	}
@@ -209,16 +211,21 @@ func newCardCallback(b *tgBot, update tgbotapi.Update) {
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingNewCardFront, DeckSelected: update.CallbackQuery.Data}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
+
+	//Create an inline keyboard to stop adding cards
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Done", "done")))
+
 	//Edit the message
-	edit := tgbotapi.NewEditMessageText(
+	edit := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
 		en.ChooseCardFront,
+		keyboard,
 	)
 
 	//Send the edit
-	if _, err := b.Bot.Send(edit); err != nil {
-		b.Logger.Errorw("Error sending message", "error", err.Error())
+	if _, err := b.Bot.Request(edit); err != nil {
+		b.Logger.Errorw("Error sending edit", "error", err.Error())
 	}
 }
 
@@ -309,5 +316,13 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, en.CardDeleted)
 	if _, err := b.Bot.Send(msg); err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
+	}
+}
+
+// stopCallback stops the process of adding new cards
+func stopCallback(b *tgBot, update tgbotapi.Update) {
+	b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
+	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: defaultState}); err != nil {
+		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 }

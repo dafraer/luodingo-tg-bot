@@ -17,8 +17,8 @@ func processCommand(b *tgBot, update tgbotapi.Update) {
 		helpCommand(b, update)
 	case "new_deck":
 		newDeckCommand(b, update)
-	case "new_card":
-		newCardCommand(b, update)
+	case "add_cards":
+		addCardsCommand(b, update)
 	case "my_cards":
 		listCardsCommand(b, update)
 	case "my_decks":
@@ -67,7 +67,7 @@ func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}
 }
-func newCardCommand(b *tgBot, update tgbotapi.Update) {
+func addCardsCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck in which card should be created" and put deck name in there
 	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())

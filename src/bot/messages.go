@@ -106,6 +106,7 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 	user, err := db.GetUser(update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
+		return
 	}
 
 	//Create the card in the db
@@ -114,7 +115,7 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Update user state
-	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: defaultState, DeckSelected: " ", CardSelected: " "}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardFront, DeckSelected: " ", CardSelected: " "}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
