@@ -119,8 +119,12 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
-	//Notify the user about creating card
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CardCreated)
+	//Create an inline keyboard to stop adding cards
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Done", "done")))
+
+	//Prompt to add another one
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.ChooseCardFront)
+	msg.ReplyMarkup = keyboard
 	if _, err := b.Bot.Send(msg); err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}

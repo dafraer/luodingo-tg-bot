@@ -28,8 +28,8 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		studyDeckCallback(b, update)
 	case waitingCardFeedback:
 		studyCardCallback(b, update, *user)
-	case waitingNewCardBack:
-		stopCallback(b, update)
+	case waitingNewCardFront:
+		doneCallback(b, update)
 	default:
 		unknownCallback(b, update)
 	}
@@ -320,7 +320,13 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 }
 
 // stopCallback stops the process of adding new cards
-func stopCallback(b *tgBot, update tgbotapi.Update) {
+func doneCallback(b *tgBot, update tgbotapi.Update) {
+	//Notify the user about creating card
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CardCreated)
+	if _, err := b.Bot.Send(msg); err != nil {
+		b.Logger.Errorw("Error sending message", "error", err.Error())
+	}
+
 	b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: defaultState}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
