@@ -6,7 +6,17 @@ import (
 )
 
 func processMessage(b *tgBot, update tgbotapi.Update) {
+	//Check that message is not longer than 40 characters
+	if len([]rune(update.Message.Text)) > 40 {
+		b.Logger.Infow("Message too long", "from", update.Message.From.UserName)
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.TooLong)
+		if _, err := b.Bot.Send(msg); err != nil {
+			b.Logger.Errorw("Error sending message", "error", err.Error())
+		}
+		return
+	}
 	b.Logger.Infow("Message", "from", update.Message.From.UserName, "body", update.Message.Text)
+
 	user, err := db.GetUser(update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
@@ -26,6 +36,23 @@ func processMessage(b *tgBot, update tgbotapi.Update) {
 }
 
 func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
+	//Check if deck exists
+	exists, err := db.DeckExists(&db.Deck{Name: update.Message.Text, TgUserId: update.Message.From.ID})
+	if err != nil {
+		b.Logger.Errorw("Error checking if deck exists", "error", err.Error())
+		return
+	}
+
+	//If deck exists already notify user about it
+	//Decks cant have the same name
+	if exists {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.DeckExists)
+		if _, err := b.Bot.Send(msg); err != nil {
+			b.Logger.Errorw("Error sending message", "error", err.Error())
+		}
+		return
+	}
+
 	//Creating the deck in the database
 	if err := db.CreateDeck(&db.Deck{Name: update.Message.Text, TgUserId: update.Message.From.ID, CardsAmount: 0}); err != nil {
 		b.Logger.Errorw("Error creating deck", "error", err.Error())
@@ -46,6 +73,21 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 }
 
 func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
+	//Check if card exists
+	user, err := db.GetUser(update.Message.From.ID)
+	if err != nil {
+		b.Logger.Errorw("Error getting user state", "error", err.Error())
+		return
+	}
+	exists, err := db.CardExists(&db.Card{Front: update.Message.Text}, user.DeckSelected, update.Message.From.ID)
+
+	if exists {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, en.CardExists)
+		if _, err := b.Bot.Send(msg); err != nil {
+			b.Logger.Errorw("Error sending message", "error", err.Error())
+		}
+		return
+	}
 
 	//Update user state to "waiting for back side of the card" and put front card in there
 	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: update.Message.Text}); err != nil {

@@ -33,6 +33,9 @@ type Messages struct {
 	ShowAnswer        string
 	StopStudy         string
 	FinishedStudy     string
+	DeckExists        string
+	CardExists        string
+	TooLong           string
 }
 
 func LoadEnMessages() Messages {

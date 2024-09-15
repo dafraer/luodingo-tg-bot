@@ -100,3 +100,24 @@ func CreateUser(user *User) (err error) {
 	result := db.Table("users").Create(&user)
 	return result.Error
 }
+
+// DeckExists checks if deck with the same name already exists
+func DeckExists(d *Deck) (exists bool, err error) {
+	var decks []int
+	result := db.Raw("SELECT id  FROM decks WHERE tg_user_id = ? AND name = ?;", d.TgUserId, d.Name).Scan(&decks)
+	if len(decks) == 0 {
+		return false, result.Error
+	}
+
+	return true, result.Error
+}
+
+// CardExists checks if card with the same name already exists in the same deck
+func CardExists(c *Card, deckName string, userId int64) (exists bool, err error) {
+	var cards []int
+	result := db.Raw("SELECT cards.id  FROM cards JOIN decks ON decks.id = deck_id WHERE name = ? AND front = ? AND tg_user_id = ?;", deckName, c.Front, userId).Scan(&cards)
+	if len(cards) == 0 {
+		return false, result.Error
+	}
+	return true, result.Error
+}

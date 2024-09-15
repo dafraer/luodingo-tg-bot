@@ -23,5 +23,8 @@
   "CreateDeckFirst": "To add a card, you first need to create a deck",
   "ShowAnswer": "Show the answer",
   "StopStudy": "Stop studying",
-  "FinishedStudy": "Congrats! You have studied all cards in this deck"
+  "FinishedStudy": "Congrats! You have studied all cards in this deck",
+  "DeckExists": "Deck with such a name already exists, pick another",
+  "CardExists": "This card already exists, pick another front text for your card",
+  "TooLong": "Deck and card namings cant be longer than 40 symbols"
 }
