@@ -24,21 +24,24 @@ func handleUpdates(b *tgBot, update tgbotapi.Update) {
 	}
 }
 
-func createDecksInlineKeyboard(userId int64) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
+func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
 	//Get decks from database
 	decks, err := db.GetDecks(userId)
-
 	//Create buttons
 	var buttons [][]tgbotapi.InlineKeyboardButton
-	for _, v := range decks {
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(v.Name), fmt.Sprint(v.Name))))
+	for i := from; i < min(len(decks), from+11); i++ {
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(decks[i].Name), fmt.Sprint(decks[i].Name))))
 	}
 
+	//add change page button
+	if len(decks) >= 11 {
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", fmt.Sprintf("left %d", from)), tgbotapi.NewInlineKeyboardButtonData("➡️️", fmt.Sprintf("right %d", from))))
+	}
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
 }
 
-func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
+func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, from int) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
 	//Get cards from database
 	cards, err := db.GetCards(deckName, userId)
 
@@ -46,11 +49,14 @@ func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot) (keyboar
 
 	//Create buttons with front-back of a card shown to the user and card id sent as a callback data
 	var buttons [][]tgbotapi.InlineKeyboardButton
-	for _, v := range cards {
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%s-%s", v.Front, v.Back), fmt.Sprint(v.Id))))
-		b.Logger.Debugw("Created new button", "message", fmt.Sprintf("%s-%s", v.Front, v.Back), "data", fmt.Sprint(v.Id))
+	for i := from; i < min(from+11, len(cards)); i++ {
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%s-%s", cards[i].Front, cards[i].Back), fmt.Sprint(cards[i].Id))))
+		b.Logger.Debugw("Created new button", "message", fmt.Sprintf("%s-%s", cards[i].Front, cards[i].Back), "data", fmt.Sprint(cards[i].Id))
 	}
-
+	//add change page button
+	if len(cards) >= 11 {
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", fmt.Sprintf("left %d", from)), tgbotapi.NewInlineKeyboardButtonData("➡️️", fmt.Sprintf("right %d", from))))
+	}
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(cards), err
 }
