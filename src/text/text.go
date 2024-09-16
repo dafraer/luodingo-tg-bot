@@ -51,7 +51,6 @@ func LoadMessages() Messages {
 			panic(fmt.Errorf("error closing text file: %v", err))
 		}
 	}()
-
 	var p []byte
 	p, err = io.ReadAll(text)
 	if err != nil {

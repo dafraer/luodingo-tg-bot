@@ -35,7 +35,14 @@ func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.Inline
 
 	//add change page button
 	if len(decks) >= 11 {
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", fmt.Sprintf("left %d", from)), tgbotapi.NewInlineKeyboardButtonData("➡️️", fmt.Sprintf("right %d", from))))
+		switch {
+		case from == 0:
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightdeck")))
+		case from >= len(decks)-10:
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftdeck")))
+		default:
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftdeck"), tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightdeck")))
+		}
 	}
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
@@ -55,7 +62,14 @@ func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, from int
 	}
 	//add change page button
 	if len(cards) >= 11 {
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", fmt.Sprintf("left %d", from)), tgbotapi.NewInlineKeyboardButtonData("➡️️", fmt.Sprintf("right %d", from))))
+		switch {
+		case from == 0:
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightcard")))
+		case from >= len(cards)-10:
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftcard")))
+		default:
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftcard"), tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightcard")))
+		}
 	}
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(cards), err

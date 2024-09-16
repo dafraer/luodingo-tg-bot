@@ -13,15 +13,29 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
 		return
 	}
+
+	//Handle flipping pages in inline keyboard separately because I am dumb fuck who couldnt implement it in a better way
+	switch update.CallbackQuery.Data {
+	case "leftdeck":
+		flipDecksCallback(b, update, "left", user)
+		return
+	case "rightdeck":
+		flipDecksCallback(b, update, "right", user)
+		return
+	case "leftcard":
+		b.Logger.Debugw("If this prints out literally wtf")
+		flipCardsCallback(b, update, "left", user)
+		return
+	case "rightcard":
+		flipCardsCallback(b, update, "right", user)
+		return
+	}
+	b.Logger.Debugw("Passed arrow check")
 	switch user.State {
 	case waitingDeleteDeckName:
 		deleteDeckCallback(b, update)
 	case waitingNewCardDeckName:
-		if containsDigit(update.CallbackQuery.Data) {
-			flipCallback(b, update)
-		} else {
-			newCardCallback(b, update)
-		}
+		newCardCallback(b, update)
 	case waitingDeleteCardDeckName:
 		deckDeleteCardCallback(b, update)
 	case waitingDeleteCardCardName:
@@ -337,10 +351,74 @@ func doneCallback(b *tgBot, update tgbotapi.Update) {
 	}
 }
 
-func flipCardsCallback(b *tgBot, update tgbotapi.Update) {
-
+func flipCardsCallback(b *tgBot, update tgbotapi.Update, direction string, user *db.User) {
+	if direction == "right" {
+		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + 1}); err != nil {
+			b.Logger.Errorw("Error updating user state", "error", err.Error())
+		}
+		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, user.PageSelected*10)
+		if err != nil {
+			b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
+		}
+		edit := tgbotapi.NewEditMessageReplyMarkup(
+			update.CallbackQuery.Message.Chat.ID,
+			update.CallbackQuery.Message.MessageID,
+			keyboard,
+		)
+		if _, err := b.Bot.Request(edit); err != nil {
+			b.Logger.Errorw("Error sending edit", "error", err.Error())
+		}
+	} else {
+		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + 1}); err != nil {
+			b.Logger.Errorw("Error updating user state", "error", err.Error())
+		}
+		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, (user.PageSelected-1)*10)
+		if err != nil {
+			b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
+		}
+		edit := tgbotapi.NewEditMessageReplyMarkup(
+			update.CallbackQuery.Message.Chat.ID,
+			update.CallbackQuery.Message.MessageID,
+			keyboard,
+		)
+		if _, err := b.Bot.Request(edit); err != nil {
+			b.Logger.Errorw("Error sending edit", "error", err.Error())
+		}
+	}
 }
 
-func flipDecksCallback(b *tgBot, update tgbotapi.Update) {
-
+func flipDecksCallback(b *tgBot, update tgbotapi.Update, direction string, user *db.User) {
+	if direction == "right" {
+		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + 1}); err != nil {
+			b.Logger.Errorw("Error updating user state", "error", err.Error())
+		}
+		keyboard, _, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, user.PageSelected*10)
+		if err != nil {
+			b.Logger.Errorw("Error getting inline keyboard for decks", "error", err.Error())
+		}
+		edit := tgbotapi.NewEditMessageReplyMarkup(
+			update.CallbackQuery.Message.Chat.ID,
+			update.CallbackQuery.Message.MessageID,
+			keyboard,
+		)
+		if _, err := b.Bot.Request(edit); err != nil {
+			b.Logger.Errorw("Error sending edit", "error", err.Error())
+		}
+	} else {
+		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected - 1}); err != nil {
+			b.Logger.Errorw("Error updating user state", "error", err.Error())
+		}
+		keyboard, _, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, (user.PageSelected-1)*10)
+		if err != nil {
+			b.Logger.Errorw("Error getting inline keyboard for decks", "error", err.Error())
+		}
+		edit := tgbotapi.NewEditMessageReplyMarkup(
+			update.CallbackQuery.Message.Chat.ID,
+			update.CallbackQuery.Message.MessageID,
+			keyboard,
+		)
+		if _, err := b.Bot.Request(edit); err != nil {
+			b.Logger.Errorw("Error sending edit", "error", err.Error())
+		}
+	}
 }
