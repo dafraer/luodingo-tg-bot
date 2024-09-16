@@ -8,77 +8,57 @@ import (
 )
 
 type Messages struct {
-	Start             string
-	Help              string
-	ChooseDeck        string
-	ChooseCard        string
-	ListDecks         string
-	ListCards         string
-	DeckDeleted       string
-	ErrorCreatingDeck string
-	ErrorDeletingDeck string
-	CardDeleted       string
-	DeckCreated       string
-	CardCreated       string
-	ChooseDeckName    string
-	ChooseCardFront   string
-	ChooseCardBack    string
-	UnknownMessage    string
-	UnknownCommand    string
-	Stats             string
-	NoDecks           string
-	NoCards           string
-	ErrorCreatingCard string
-	CreateDeckFirst   string
-	ShowAnswer        string
-	StopStudy         string
-	FinishedStudy     string
-	DeckExists        string
-	CardExists        string
-	TooLong           string
+	Start             map[string]string `json:"start"`
+	Help              map[string]string `json:"help"`
+	ChooseDeck        map[string]string `json:"choose_deck"`
+	ChooseCard        map[string]string `json:"choose_card"`
+	ListDecks         map[string]string `json:"list_decks"`
+	ListCards         map[string]string `json:"list_cards"`
+	DeckDeleted       map[string]string `json:"deck_deleted"`
+	ErrorCreatingDeck map[string]string `json:"error_creating_deck"`
+	ErrorDeletingDeck map[string]string `json:"error_deleting_deck"`
+	CardDeleted       map[string]string `json:"card_deleted"`
+	DeckCreated       map[string]string `json:"deck_created"`
+	CardCreated       map[string]string `json:"card_created"`
+	ChooseDeckName    map[string]string `json:"choose_deck_name"`
+	ChooseCardFront   map[string]string `json:"choose_card_front"`
+	ChooseCardBack    map[string]string `json:"choose_card_back"`
+	UnknownMessage    map[string]string `json:"unknown_message"`
+	UnknownCommand    map[string]string `json:"unknown_command"`
+	Stats             map[string]string `json:"stats"`
+	NoDecks           map[string]string `json:"no_decks"`
+	NoCards           map[string]string `json:"no_cards"`
+	ErrorCreatingCard map[string]string `json:"error_creating_card"`
+	CreateDeckFirst   map[string]string `json:"create_deck_first"`
+	ShowAnswer        map[string]string `json:"show_answer"`
+	StopStudy         map[string]string `json:"stop_study"`
+	FinishedStudy     map[string]string `json:"finished_study"`
+	DeckExists        map[string]string `json:"deck_exists"`
+	CardExists        map[string]string `json:"card_exists"`
+	TooLong           map[string]string `json:"too_long"`
+	UserCards         map[string]string `json:"user_cards"`
+	Done              map[string]string `json:"done"`
 }
 
-func LoadEnMessages() Messages {
-	var en Messages
-	enText, err := os.Open("./src/text/en.json")
+func LoadMessages() Messages {
+	var msgs Messages
+	text, err := os.Open("./src/text/messages.json")
 	if err != nil {
-		panic(fmt.Errorf("error opening english text file: %v", err))
+		panic(fmt.Errorf("error opening text file: %v", err))
 	}
 	defer func() {
-		if err := enText.Close(); err != nil {
-			panic(fmt.Errorf("error closing english text file: %v", err))
+		if err := text.Close(); err != nil {
+			panic(fmt.Errorf("error closing text file: %v", err))
 		}
 	}()
 
 	var p []byte
-	p, err = io.ReadAll(enText)
+	p, err = io.ReadAll(text)
 	if err != nil {
 		panic(fmt.Errorf("error reading english text file: %v", err))
 	}
-	if err = json.Unmarshal(p, &en); err != nil {
+	if err = json.Unmarshal(p, &msgs); err != nil {
 		panic(fmt.Errorf("error when parsing english text file, %v", err))
 	}
-	return en
-}
-
-func LoadRuMessages() Messages {
-	var ru Messages
-	ruText, err := os.Open("./src/text/ru.json")
-	if err != nil {
-		panic(fmt.Errorf("error opening russian text file, %v", err))
-	}
-	defer func() {
-		if err := ruText.Close(); err != nil {
-			panic(fmt.Errorf("error closing russian text file: %v", err))
-		}
-	}()
-
-	p, err := io.ReadAll(ruText)
-	if err != nil {
-		panic(fmt.Errorf("error opening russian text file, %v", err))
-	}
-	if err = json.Unmarshal(p, &ru); err != nil {
-		panic(fmt.Errorf("error parsing russian text file, %v", err))
-	}
-	return ru
+	return msgs
 }

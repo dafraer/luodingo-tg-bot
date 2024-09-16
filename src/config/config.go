@@ -8,17 +8,17 @@ import (
 )
 
 type Bot struct {
-	Token   string
-	Offset  int
-	Timeout int
+	Token   string `json:"token"`
+	Offset  int    `json:"offset"`
+	Timeout int    `json:"timeout"`
 }
 
 type Database struct {
-	Host     string
-	User     string
-	Password string
-	DbName   string
-	Port     string
+	Host     string `json:"host"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	DbName   string `json:"db_name"`
+	Port     string `json:"port"`
 }
 
 var BotConfig Bot

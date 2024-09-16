@@ -1,0 +1,152 @@
+{
+  "start": {
+    "en": "🎉Welcome to LuoDingo Flashcards Bot! I'm here to help you learn new words with flashcards. Type /help to see what you can do!",
+    "ru": "🎉Добро пожаловать в бот LuoDingo Flashcards! Я помогу вам изучать новые слова с помощью карточек. Введите /help, чтобы увидеть список команд!",
+    "es": "🎉¡Bienvenido al bot LuoDingo Flashcards! Estoy aquí para ayudarte a aprender nuevas palabras con tarjetas. Escribe /help para ver lo que puedes hacer."
+  },
+  "help": {
+    "en": "🛠️Here are the commands you can use:\n\n/start - Start the bot\n/new_deck - Create a new deck\n/add_cards - Add new cards to a deck\n/my_decks - List all your decks\n/my_cards - View cards in a deck\n/delete_deck - Delete a deck\n/delete_card - Remove a card\n/study_deck - Study a specific deck\n/stats - Check bot stats 📊",
+    "ru": "🛠️Вот команды, которые вы можете использовать:\n\n/start - Запустить бота\n/new_deck - Создать новую колоду\n/add_cards - Добавить новые карточки в колоду\n/my_decks - Показать все ваши колоды\n/my_cards - Показать карточки в колоде\n/delete_deck - Удалить колоду\n/delete_card - Удалить карточку\n/study_deck - Учить карточки из выбранной колоды\n/stats - Показать статистику бота 📊",
+    "es": "🛠️Aquí están los comandos que puedes usar:\n\n/start - Iniciar el bot\n/new_deck - Crear un nuevo mazo\n/add_cards - Agregar nuevas tarjetas a un mazo\n/my_decks - Ver todos tus mazos\n/my_cards - Ver tarjetas en un mazo\n/delete_deck - Eliminar un mazo\n/delete_card - Eliminar una tarjeta\n/study_deck - Estudiar un mazo específico\n/stats - Ver estadísticas del bot 📊"
+  },
+  "choose_deck": {
+    "en": "Please choose a deck from the list below:",
+    "ru": "Пожалуйста, выберите колоду из списка ниже:",
+    "es": "Por favor, elige un mazo de la lista a continuación:"
+  },
+  "choose_card": {
+    "en": "Please choose a card from the selected deck:",
+    "ru": "Пожалуйста, выберите карточку из выбранной колоды:",
+    "es": "Por favor, elige una tarjeta del mazo seleccionado:"
+  },
+  "list_decks": {
+    "en": "Here are your current decks:\n",
+    "ru": "Вот ваши текущие колоды:\n",
+    "es": "Estos son tus mazos actuales:\n"
+  },
+  "list_cards": {
+    "en": "Here are the cards in this deck:\n",
+    "ru": "Вот карточки в этой колоде:\n",
+    "es": "Estas son las tarjetas en este mazo:\n"
+  },
+  "deck_deleted": {
+    "en": "🗑️The deck has been successfully deleted.",
+    "ru": "🗑️Колода была успешно удалена.",
+    "es": "🗑️El mazo ha sido eliminado con éxito."
+  },
+  "error_creating_deck": {
+    "en": "⚠️Oops! There was an error while trying to create a new deck. Please try again.",
+    "ru": "⚠️Упс! Произошла ошибка при создании новой колоды. Попробуйте снова.",
+    "es": "⚠️¡Vaya! Ocurrió un error al intentar crear un nuevo mazo. Por favor, inténtalo de nuevo."
+  },
+  "error_deleting_deck": {
+    "en": "⚠️There was an error while trying to delete the deck. Please try again.",
+    "ru": "⚠️Произошла ошибка при удалении колоды. Попробуйте снова.",
+    "es": "⚠️Hubo un error al intentar eliminar el mazo. Por favor, inténtalo de nuevo."
+  },
+  "card_deleted": {
+    "en": "🗑️The card has been successfully removed.",
+    "ru": "🗑️Карточка была успешно удалена.",
+    "es": "🗑️La tarjeta ha sido eliminada con éxito."
+  },
+  "deck_created": {
+    "en": "Your new deck has been created! Let's start adding cards. Use /add_cards to get started.",
+    "ru": "Ваша новая колода создана! Начните добавлять карточки, используя команду /add_cards.",
+    "es": "¡Tu nuevo mazo ha sido creado! Comienza a agregar tarjetas con /add_cards."
+  },
+  "card_created": {
+    "en": "Your new flashcards have been added to the deck.",
+    "ru": "Новые карточки были добавлены в колоду.",
+    "es": "Tus nuevas tarjetas han sido añadidas al mazo."
+  },
+  "choose_deck_name": {
+    "en": "Please enter a name for your new deck:",
+    "ru": "Пожалуйста, введите название для вашей новой колоды:",
+    "es": "Por favor, introduce un nombre para tu nuevo mazo:"
+  },
+  "choose_card_front": {
+    "en": "✏️Please enter the text for the front of your flashcard. When you're done adding cards, press 'Done'.",
+    "ru": "✏️Пожалуйста, введите текст для лицевой стороны карточки. Когда закончите добавлять карточки, нажмите 'Готово'.",
+    "es": "✏️Por favor, introduce el texto para la parte frontal de tu tarjeta. Cuando hayas terminado de agregar tarjetas, presiona 'Hecho'."
+  },
+  "choose_card_back": {
+    "en": "✏️Now enter the text for the back of your flashcard:",
+    "ru": "✏️Теперь введите текст для обратной стороны карточки:",
+    "es": "✏️Ahora introduce el texto para la parte trasera de tu tarjeta:"
+  },
+  "unknown_message": {
+    "en": "🤔Sorry, I didn't quite catch that.",
+    "ru": "🤔Извините, я не понял сообщение.",
+    "es": "🤔Lo siento, no entendí eso."
+  },
+  "unknown_command": {
+    "en": "🚫I don't recognize that command. Type /help to see available commands.",
+    "ru": "🚫Я не узнаю эту команду. Введите /help, чтобы увидеть доступные команды.",
+    "es": "🚫No reconozco ese comando. Escribe /help para ver los comandos disponibles."
+  },
+  "stats": {
+    "en": "The bot has %d users",
+    "ru": "У бота %d пользователей",
+    "es": "El bot tiene %d usuarios"
+  },
+  "no_decks": {
+    "en": "😕You don't have any decks yet. Start by creating one with /new_deck!",
+    "ru": "😕У вас пока нет колод. Начните с создания новой, используя команду /new_deck!",
+    "es": "😕Aún no tienes mazos. ¡Empieza creando uno con /new_deck!"
+  },
+  "no_cards": {
+    "en": "🙁This deck is empty. Add some cards with /add_cards.",
+    "ru": "🙁Эта колода пуста. Добавьте карточки с помощью команды /add_cards.",
+    "es": "🙁Este mazo está vacío. Agrega algunas tarjetas con /add_cards."
+  },
+  "error_creating_card": {
+    "en": "⚠️ There was an error while trying to create the flashcard. Please try again.",
+    "ru": "⚠️Произошла ошибка при создании карточки. Попробуйте снова.",
+    "es": "⚠️Ocurrió un error al intentar crear la tarjeta. Por favor, inténtalo de nuevo."
+  },
+  "create_deck_first": {
+    "en": "To add flashcards, you'll need to create a deck first. Use /new_deck to get started!",
+    "ru": "Для добавления карточек, вам нужно сначала создать колоду. Используйте команду /new_deck!",
+    "es": "Para agregar tarjetas, primero necesitas crear un mazo. Usa /new_deck para comenzar."
+  },
+  "show_answer": {
+    "en": "Show the answer",
+    "ru": "Показать ответ",
+    "es": "Mostrar la respuesta"
+  },
+  "stop_study": {
+    "en": "Stop studying",
+    "ru": "Остановить изучение",
+    "es": "Dejar de estudiar"
+  },
+    "finished_study": {
+      "en": "🎉Awesome! You've studied all the cards in this deck. Keep up the great work!",
+      "ru": "🎉Отлично! Вы изучили все карточки в этой колоде. Так держать!",
+      "es": "🎉¡Genial! Has estudiado todas las tarjetas de este mazo. ¡Sigue así!"
+    },
+    "deck_exists": {
+      "en": "⚠️A deck with that name already exists. Please choose another name.",
+      "ru": "⚠️Колода с таким названием уже существует. Пожалуйста, выберите другое название.",
+      "es": "⚠️Ya existe un mazo con ese nombre. Por favor, elige otro nombre."
+    },
+    "card_exists": {
+      "en": "⚠️This flashcard already exists. Please use a different front text.",
+      "ru": "⚠️Эта карточка уже существует. Пожалуйста, используйте другой текст.",
+      "es": "⚠️Esta tarjeta ya existe. Usa otro texto para la parte frontal."
+    },
+    "too_long": {
+      "en": "⚠️Deck and card names can't be longer than 40 characters.",
+      "ru": "⚠️Названия колод и карточек не могут быть длиннее 40 символов.",
+      "es": "⚠️Los nombres de los mazos y tarjetas no pueden tener más de 40 caracteres."
+    },
+    "user_cards": {
+      "en": "These are the cards from %s deck:\n",
+      "ru": "Это карточки из колоды %s:\n",
+      "es": "Estas son las tarjetas del mazo %s:\n"
+    },
+    "done": {
+      "en": "Done",
+      "ru": "Готово",
+      "es": "Hecho"
+    }
+  }

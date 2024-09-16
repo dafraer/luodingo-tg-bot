@@ -2,17 +2,12 @@ package bot
 
 import (
 	"flashcards-bot/src/db"
-	"flashcards-bot/src/text"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"math/rand"
 )
 
-var en, ru text.Messages
-
 func (b *tgBot) Run() {
-	en = text.LoadEnMessages()
-	ru = text.LoadRuMessages()
 	for update := range b.Updates {
 		handleUpdates(b, update)
 	}
@@ -71,10 +66,11 @@ func (b *tgBot) deleteMessage(chatId int64, messageId int) {
 	//Clear delete queue
 	for _, msgId := range b.DeleteQueue {
 		deleteMessage := tgbotapi.NewDeleteMessage(chatId, msgId)
-		if _, err := b.Bot.Request(deleteMessage); err != nil {
-			b.Logger.Errorw("Error deleting message", "error", err.Error())
-		}
+		//Avoiding error handling on purpose
+		//Because does not matter if we cant delete message
+		b.Bot.Request(deleteMessage)
 	}
+	b.DeleteQueue = nil
 }
 
 // Creates a message with a card to study
@@ -101,7 +97,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 		edit := tgbotapi.NewEditMessageText(
 			update.CallbackQuery.Message.Chat.ID,
 			update.CallbackQuery.Message.MessageID,
-			en.FinishedStudy,
+			b.Messages.FinishedStudy[language(update.CallbackQuery.From.LanguageCode)],
 		)
 		return edit, nil
 	}
@@ -113,8 +109,8 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 	//Show back of the card
 	//Stop studying
 	var buttons [][]tgbotapi.InlineKeyboardButton
-	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(en.ShowAnswer, fmt.Sprint(card.Back))))
-	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(en.StopStudy, "stop")))
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.ShowAnswer[language(update.CallbackQuery.From.LanguageCode)], fmt.Sprint(card.Back))))
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.StopStudy[language(update.CallbackQuery.From.LanguageCode)], "stop")))
 
 	//Created an inline keyboard with previously created buttons
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
@@ -132,4 +128,11 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 	return edit, nil
+}
+
+func language(languageCode string) string {
+	if languageCode != "en" && languageCode != "ru" && languageCode != "es" {
+		return "en"
+	}
+	return languageCode
 }
