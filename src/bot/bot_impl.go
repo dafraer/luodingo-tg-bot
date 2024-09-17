@@ -56,12 +56,12 @@ func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, from int
 
 	//Create buttons with front-back of a card shown to the user and card id sent as a callback data
 	var buttons [][]tgbotapi.InlineKeyboardButton
-	for i := from; i < min(from+11, len(cards)); i++ {
+	for i := from; i < min(from+10, len(cards)); i++ {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%s-%s", cards[i].Front, cards[i].Back), fmt.Sprint(cards[i].Id))))
 		b.Logger.Debugw("Created new button", "message", fmt.Sprintf("%s-%s", cards[i].Front, cards[i].Back), "data", fmt.Sprint(cards[i].Id))
 	}
 	//add change page button
-	if len(cards) >= 11 {
+	if len(cards) >= 10 {
 		switch {
 		case from == 0:
 			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightcard")))
