@@ -29,7 +29,7 @@ func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.Inline
 	decks, err := db.GetDecks(userId)
 	//Create buttons
 	var buttons [][]tgbotapi.InlineKeyboardButton
-	for i := from; i < min(len(decks), from+11); i++ {
+	for i := from; i < min(len(decks), from+10); i++ {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(decks[i].Name), fmt.Sprint(decks[i].Name))))
 	}
 

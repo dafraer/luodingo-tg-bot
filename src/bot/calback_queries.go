@@ -369,7 +369,7 @@ func flipCardsCallback(b *tgBot, update tgbotapi.Update, direction string, user 
 			b.Logger.Errorw("Error sending edit", "error", err.Error())
 		}
 	} else {
-		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + 1}); err != nil {
+		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected - 1}); err != nil {
 			b.Logger.Errorw("Error updating user state", "error", err.Error())
 		}
 		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, (user.PageSelected-1)*10)
