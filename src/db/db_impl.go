@@ -81,7 +81,7 @@ func DeleteCard(cardId, deckName string, userId int64) (err error) {
 func GetUser(userId int64) (user *User, err error) {
 	result := db.Raw("SELECT * FROM users WHERE tg_user_id = ?;", userId).Scan(&user)
 	if result.RowsAffected == 0 {
-		if err := CreateUser(&User{TgUserId: userId, State: 1}); err != nil {
+		if err := CreateUser(&User{TgUserId: userId, State: 1, PageSelected: 1}); err != nil {
 			return &User{}, err
 		}
 		return &User{TgUserId: userId, State: 1}, result.Error

@@ -23,7 +23,6 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		flipDecksCallback(b, update, "right", user)
 		return
 	case "leftcard":
-		b.Logger.Debugw("If this prints out literally wtf")
 		flipCardsCallback(b, update, "left", user)
 		return
 	case "rightcard":
@@ -187,7 +186,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Get decks keyboard
-	keyboard, decksAmount, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, 0)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, 1)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard", "error", err.Error())
 	}
@@ -252,7 +251,7 @@ func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 
 	//Create inline keyboard of cards in a selected deck
 	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", update.CallbackQuery.Data, "tg_user_id", update.CallbackQuery.From.ID)
-	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, update.CallbackQuery.Data, b, 0)
+	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, update.CallbackQuery.Data, b, 1)
 	b.Logger.Debugw("Created inline keyboard with cards", "cards amount", cardsAmount, "error", err)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
@@ -301,7 +300,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 
 	//Create a new inline keyboard without the deleted card
 	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", deckName, "tg_user_id", update.CallbackQuery.From.ID)
-	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, deckName, b, 0)
+	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, deckName, b, 1)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
 		return

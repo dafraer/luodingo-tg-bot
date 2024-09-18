@@ -78,7 +78,7 @@ func addCardsCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.ChooseDeck[language(update.Message.From.LanguageCode)])
 
 	//Create an inline keyboard
-	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 0)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 1)
 	if err != nil {
 		b.Logger.Errorw("Error creating a keyboard", "error", err.Error())
 	}
@@ -139,7 +139,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create a keyboard with decks
-	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 0)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 1)
 	if err != nil {
 		b.Logger.Errorw("Error creating a keyboard", "error", err.Error())
 		return
@@ -173,7 +173,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.ChooseDeck[language(update.Message.From.LanguageCode)])
 
 	//Create a new keyboard with decks to choose from
-	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 0)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 1)
 	if err != nil {
 		b.Logger.Errorw("Error getting decks", "error", err.Error())
 	}
@@ -205,7 +205,7 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create  a keyboard with decks to choose from
-	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 0)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 1)
 	if err != nil {
 		b.Logger.Errorw("Error creating inline keyboard", "error", err.Error())
 	}
@@ -237,7 +237,7 @@ func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create a keyboard with deck names
-	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 0)
+	keyboard, decksAmount, err := createDecksInlineKeyboard(update.Message.From.ID, 1)
 	if err != nil {
 		b.Logger.Errorw("Error creating inline keyboard", "error", err.Error())
 	}

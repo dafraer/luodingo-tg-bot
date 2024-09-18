@@ -25,6 +25,7 @@ func handleUpdates(b *tgBot, update tgbotapi.Update) {
 }
 
 func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
+	from--
 	//Get decks from database
 	decks, err := db.GetDecks(userId)
 	//Create buttons
@@ -49,6 +50,7 @@ func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.Inline
 }
 
 func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, from int) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
+	from--
 	//Get cards from database
 	cards, err := db.GetCards(deckName, userId)
 
