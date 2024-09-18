@@ -122,7 +122,7 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 		edit := tgbotapi.NewEditMessageTextAndMarkup(
 			update.CallbackQuery.Message.Chat.ID,
 			update.CallbackQuery.Message.MessageID,
-			fmt.Sprintf("%s\n————————————————————\n%s", user.CardSelected, update.CallbackQuery.Data),
+			fmt.Sprintf("%s\n——————————————————————\n%s", user.CardSelected, update.CallbackQuery.Data),
 			keyboard,
 		)
 		if _, err := b.Bot.Send(edit); err != nil {
@@ -171,7 +171,6 @@ func listCardsCallback(b *tgBot, update tgbotapi.Update) {
 
 func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	//Don't update user state because then callback cause bot to crash
-
 	//Get deck name to delete
 	name := update.CallbackQuery.Data
 
@@ -250,7 +249,7 @@ func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create inline keyboard of cards in a selected deck
-	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", update.CallbackQuery.Data, "tg_user_id", update.CallbackQuery.From.ID)
+	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", update.CallbackQuery.Data, "tg_user_id", update.CallbackQuery.From.ID, "page selected", 1)
 	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, update.CallbackQuery.Data, b, 1)
 	b.Logger.Debugw("Created inline keyboard with cards", "cards amount", cardsAmount, "error", err)
 	if err != nil {
@@ -300,7 +299,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 
 	//Create a new inline keyboard without the deleted card
 	b.Logger.Debugw("Creating cards inline keyboard with cards", "deckName", deckName, "tg_user_id", update.CallbackQuery.From.ID)
-	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, deckName, b, 1)
+	keyboard, cardsAmount, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, deckName, b, user.PageSelected)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
 		return
@@ -336,7 +335,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, deckName string) {
 	}
 }
 
-// stopCallback stops the process of adding new cards
+// doneCallback stops the process of adding new cards
 func doneCallback(b *tgBot, update tgbotapi.Update) {
 	//Notify the user about creating card
 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, b.Messages.CardCreated[language(update.CallbackQuery.From.LanguageCode)])
@@ -351,11 +350,12 @@ func doneCallback(b *tgBot, update tgbotapi.Update) {
 }
 
 func flipCardsCallback(b *tgBot, update tgbotapi.Update, direction string, user *db.User) {
+	b.Logger.Debugw("flipCardsCallback function called", "page selected", user.PageSelected, "direction", direction)
 	if direction == "right" {
 		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + 1}); err != nil {
 			b.Logger.Errorw("Error updating user state", "error", err.Error())
 		}
-		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, (user.PageSelected+1)*10)
+		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, user.PageSelected+1)
 		if err != nil {
 			b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
 		}
@@ -371,7 +371,7 @@ func flipCardsCallback(b *tgBot, update tgbotapi.Update, direction string, user 
 		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected - 1}); err != nil {
 			b.Logger.Errorw("Error updating user state", "error", err.Error())
 		}
-		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, (user.PageSelected-1)*10)
+		keyboard, _, err := createCardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, user.PageSelected-1)
 		if err != nil {
 			b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
 		}
@@ -391,7 +391,7 @@ func flipDecksCallback(b *tgBot, update tgbotapi.Update, direction string, user 
 		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + 1}); err != nil {
 			b.Logger.Errorw("Error updating user state", "error", err.Error())
 		}
-		keyboard, _, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, (user.PageSelected+1)*10)
+		keyboard, _, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, user.PageSelected+1)
 		if err != nil {
 			b.Logger.Errorw("Error getting inline keyboard for decks", "error", err.Error())
 		}
@@ -407,7 +407,7 @@ func flipDecksCallback(b *tgBot, update tgbotapi.Update, direction string, user 
 		if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected - 1}); err != nil {
 			b.Logger.Errorw("Error updating user state", "error", err.Error())
 		}
-		keyboard, _, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, (user.PageSelected-1)*10)
+		keyboard, _, err := createDecksInlineKeyboard(update.CallbackQuery.From.ID, user.PageSelected-1)
 		if err != nil {
 			b.Logger.Errorw("Error getting inline keyboard for decks", "error", err.Error())
 		}

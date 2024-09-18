@@ -24,10 +24,13 @@ func handleUpdates(b *tgBot, update tgbotapi.Update) {
 	}
 }
 
-func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
-	from--
+func createDecksInlineKeyboard(userId int64, page int) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
 	//Get decks from database
 	decks, err := db.GetDecks(userId)
+
+	//Figure out from which card to display
+	from := (page - 1) * 10
+
 	//Create buttons
 	var buttons [][]tgbotapi.InlineKeyboardButton
 	for i := from; i < min(len(decks), from+10); i++ {
@@ -49,18 +52,18 @@ func createDecksInlineKeyboard(userId int64, from int) (keyboard tgbotapi.Inline
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
 }
 
-func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, from int) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
-	from--
+func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, page int) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
+	b.Logger.Debugw("createCardsInlineKeyboard", "page", page)
 	//Get cards from database
 	cards, err := db.GetCards(deckName, userId)
 
-	b.Logger.Debugw("Got cards list", "cards", cards, "error", err)
+	//Figure out from which card to display
+	from := (page - 1) * 10
 
 	//Create buttons with front-back of a card shown to the user and card id sent as a callback data
 	var buttons [][]tgbotapi.InlineKeyboardButton
 	for i := from; i < min(from+10, len(cards)); i++ {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%s-%s", cards[i].Front, cards[i].Back), fmt.Sprint(cards[i].Id))))
-		b.Logger.Debugw("Created new button", "message", fmt.Sprintf("%s-%s", cards[i].Front, cards[i].Back), "data", fmt.Sprint(cards[i].Id))
 	}
 	//add change page button
 	if len(cards) >= 10 {
@@ -141,7 +144,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 	edit := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
 		update.CallbackQuery.Message.MessageID,
-		card.Front+"\n————————————————————",
+		card.Front+"\n——————————————————————",
 		keyboard,
 	)
 
