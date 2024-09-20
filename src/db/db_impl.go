@@ -32,10 +32,18 @@ func DeleteDeck(deck *Deck) (err error) {
 
 // CreateCard creates card using deck name, tg_user_id and card struct
 func CreateCard(deckName string, userId int64, card *Card) (err error) {
+	//Add card
 	result := db.Exec("INSERT INTO cards (deck_id, front, back, learned) VALUES ((SELECT id FROM decks WHERE name = ? AND tg_user_id = ?), ?, ?, ?);", deckName, userId, card.Front, card.Back, card.Learned)
 	if result.Error != nil {
 		return result.Error
 	}
+
+	//Add reverse card
+	/*result = db.Exec("INSERT INTO cards (deck_id, front, back, learned) VALUES ((SELECT id FROM decks WHERE name = ? AND tg_user_id = ?), ?, ?, ?);", deckName, userId, card.Back, card.Front, card.Learned)
+	if result.Error != nil {
+		return result.Error
+	}
+	*/
 
 	//Increment amount of cards in the deck
 	result = db.Exec("UPDATE decks SET cards_amount = cards_amount + 1 WHERE name = ? AND tg_user_id = ?;", deckName, userId)

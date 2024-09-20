@@ -36,7 +36,6 @@ type Messages struct {
 	DeckExists        map[string]string `json:"deck_exists"`
 	CardExists        map[string]string `json:"card_exists"`
 	TooLong           map[string]string `json:"too_long"`
-	UserCards         map[string]string `json:"user_cards"`
 	Done              map[string]string `json:"done"`
 }
 

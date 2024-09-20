@@ -41,11 +41,11 @@ func createDecksInlineKeyboard(userId int64, page int) (keyboard tgbotapi.Inline
 	if len(decks) >= 11 {
 		switch {
 		case from == 0:
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightdeck")))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", rightDeck)))
 		case from >= len(decks)-10:
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftdeck")))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", leftDeck)))
 		default:
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftdeck"), tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightdeck")))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", leftDeck), tgbotapi.NewInlineKeyboardButtonData("➡️️", rightDeck)))
 		}
 	}
 	//Return the keyboard with created buttons
@@ -69,11 +69,11 @@ func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, page int
 	if len(cards) >= 10 {
 		switch {
 		case from == 0:
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightcard")))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("➡️️", rightCard)))
 		case from >= len(cards)-10:
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftcard")))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", leftCard)))
 		default:
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", "leftcard"), tgbotapi.NewInlineKeyboardButtonData("➡️️", "rightcard")))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", leftCard), tgbotapi.NewInlineKeyboardButtonData("➡️️", rightCard)))
 		}
 	}
 	//Return the keyboard with created buttons
@@ -107,6 +107,11 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 		return tgbotapi.EditMessageTextConfig{}, err
 	}
 
+	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
+	if err != nil {
+		b.Logger.Errorw("Error getting user language", "error", err.Error())
+	}
+
 	//Get cards from the selected deck
 	cards, err := db.GetUnlearnedCards(user.DeckSelected, update.CallbackQuery.From.ID)
 	if err != nil {
@@ -122,7 +127,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 		edit := tgbotapi.NewEditMessageText(
 			update.CallbackQuery.Message.Chat.ID,
 			update.CallbackQuery.Message.MessageID,
-			b.Messages.FinishedStudy[language(update.CallbackQuery.From.LanguageCode)],
+			b.Messages.FinishedStudy[lang],
 		)
 		return edit, nil
 	}
@@ -134,8 +139,8 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 	//Show back of the card
 	//Stop studying
 	var buttons [][]tgbotapi.InlineKeyboardButton
-	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.ShowAnswer[language(update.CallbackQuery.From.LanguageCode)], fmt.Sprint(card.Back))))
-	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.StopStudy[language(update.CallbackQuery.From.LanguageCode)], "stop")))
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.ShowAnswer[lang], fmt.Sprint(card.Back))))
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.StopStudy[lang], stop)))
 
 	//Created an inline keyboard with previously created buttons
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
@@ -155,9 +160,17 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 	return edit, nil
 }
 
-func language(languageCode string) string {
+func language(languageCode string, userId int64) (string, error) {
 	if languageCode != "en" && languageCode != "ru" && languageCode != "es" {
-		return "en"
+		user, err := db.GetUser(userId)
+		if err != nil {
+			return "", err
+		}
+
+		if user.Language != "en" && user.Language != "ru" && user.Language != "es" {
+			return "en", nil
+		}
+		return user.Language, nil
 	}
-	return languageCode
+	return languageCode, nil
 }

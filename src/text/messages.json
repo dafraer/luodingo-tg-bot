@@ -139,11 +139,6 @@
       "ru": "⚠️Названия колод и карточек не могут быть длиннее 40 символов.",
       "es": "⚠️Los nombres de los mazos y tarjetas no pueden tener más de 40 caracteres."
     },
-    "user_cards": {
-      "en": "These are the cards from %s deck:\n",
-      "ru": "Это карточки из колоды %s:\n",
-      "es": "Estas son las tarjetas del mazo %s:\n"
-    },
     "done": {
       "en": "Done",
       "ru": "Готово",

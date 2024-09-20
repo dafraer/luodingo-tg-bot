@@ -15,6 +15,7 @@ type User struct {
 	DeckSelected string
 	CardSelected string
 	PageSelected int
+	Language     string
 }
 
 type Deck struct {
