@@ -89,7 +89,7 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 	case stop:
 		b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
 	case check:
-		if err := db.UpdateCard(user.DeckSelected, update.CallbackQuery.From.ID, user.CardSelected, true); err != nil {
+		if err := db.UpdateCard(&db.Card{Id: user.CardSelected, Learned: true}); err != nil {
 			b.Logger.Errorw("Error updating card state", "error", err.Error())
 		}
 
@@ -133,18 +133,22 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 
 		//Create a keyboard using previously created buttons
 		keyboard := tgbotapi.NewInlineKeyboardMarkup(row, stopButton)
-
+		card, err := db.GetCard(user.CardSelected)
+		b.Logger.Debugw("debug message", "card_id", user.CardSelected, "card", card)
+		if err != nil {
+			b.Logger.Errorw("Error getting card", "error", err.Error())
+			return
+		}
 		//Create and send the edit
 		edit := tgbotapi.NewEditMessageTextAndMarkup(
 			update.CallbackQuery.Message.Chat.ID,
 			update.CallbackQuery.Message.MessageID,
-			fmt.Sprintf("%s\n——————————————————————\n%s", user.CardSelected, update.CallbackQuery.Data),
+			fmt.Sprintf("%s\n——————————————————————\n%s", card.Front, update.CallbackQuery.Data),
 			keyboard,
 		)
 		if _, err := b.Bot.Send(edit); err != nil {
 			b.Logger.Errorw("Error sending edit", "error", err.Error())
 		}
-
 	}
 }
 

@@ -92,7 +92,7 @@ func (b *tgBot) deleteMessage(chatId int64, messageId int) {
 	for _, msgId := range b.DeleteQueue {
 		deleteMessage := tgbotapi.NewDeleteMessage(chatId, msgId)
 		//Avoiding error handling on purpose
-		//Because does not matter if we cant delete message
+		//Because it does not matter if we cant delete message
 		b.Bot.Request(deleteMessage)
 	}
 	b.DeleteQueue = nil
@@ -153,7 +153,7 @@ func (b *tgBot) studyRandomCard(update tgbotapi.Update) (tgbotapi.EditMessageTex
 		keyboard,
 	)
 
-	user.CardSelected = card.Front
+	user.CardSelected = card.Id
 	if err := db.UpdateUser(user); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}

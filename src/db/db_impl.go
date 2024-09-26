@@ -31,11 +31,11 @@ func DeleteDeck(deck *Deck) (err error) {
 }
 
 // CreateCard creates card using deck name, tg_user_id and card struct
-func CreateCard(deckName string, userId int64, card *Card) (err error) {
+func CreateCard(deckName string, userId int64, card *Card) (id int, err error) {
 	//Add card
 	result := db.Exec("INSERT INTO cards (deck_id, front, back, learned) VALUES ((SELECT id FROM decks WHERE name = ? AND tg_user_id = ?), ?, ?, ?);", deckName, userId, card.Front, card.Back, card.Learned)
 	if result.Error != nil {
-		return result.Error
+		return -1, result.Error
 	}
 
 	//Add reverse card
@@ -47,7 +47,12 @@ func CreateCard(deckName string, userId int64, card *Card) (err error) {
 
 	//Increment amount of cards in the deck
 	result = db.Exec("UPDATE decks SET cards_amount = cards_amount + 1 WHERE name = ? AND tg_user_id = ?;", deckName, userId)
-	return result.Error
+	if result.Error != nil {
+		return -1, result.Error
+	}
+
+	result = db.Raw("SELECT cards.id FROM cards JOIN decks ON cards.deck_id = decks.id WHERE decks.tg_user_id = ? AND front = ? AND name = ?", userId, card.Front, deckName).Scan(&id)
+	return id, result.Error
 }
 
 // GetCards returns card from a single deck based on deck name and tg_user_id
@@ -58,13 +63,13 @@ func GetCards(deckName string, userId int64) (cards []Card, err error) {
 
 // GetUnlearnedCards returns only unlearned cards from a single deck based on deck name and tg_user_id
 func GetUnlearnedCards(deckName string, userId int64) (cards []Card, err error) {
-	result := db.Raw("SELECT * FROM cards JOIN decks ON decks.id = cards.deck_id WHERE decks.name = ? AND decks.tg_user_id = ? AND learned = false;", deckName, userId).Scan(&cards)
+	result := db.Raw("SELECT cards.id, deck_id, front, back, learned FROM cards JOIN decks ON decks.id = cards.deck_id WHERE decks.name = ? AND decks.tg_user_id = ? AND learned = false;", deckName, userId).Scan(&cards)
 	return cards, result.Error
 }
 
-// UpdateCard changes card status to either learned or unlearned
-func UpdateCard(deckName string, userId int64, front string, learned bool) (err error) {
-	result := db.Exec("UPDATE cards SET learned = ? FROM decks WHERE decks.id = cards.deck_id AND cards.front = ? AND decks.tg_user_id = ? AND decks.name = ?;", learned, front, userId, deckName)
+// UpdateCard updates non nil fields of card struct
+func UpdateCard(card *Card) (err error) {
+	result := db.Table("cards").Where("id = ?", card.Id).Updates(card)
 	return result.Error
 }
 
@@ -83,6 +88,12 @@ func DeleteCard(cardId, deckName string, userId int64) (err error) {
 	//Decrement amount of cards in the deck
 	result = db.Exec("UPDATE decks SET cards_amount = cards_amount - 1 WHERE name = ? AND tg_user_id = ?;", deckName, userId)
 	return result.Error
+}
+
+// GetCard return a specific card by card id
+func GetCard(cardId int) (card Card, err error) {
+	result := db.Table("cards").Where("id = ?", cardId).Scan(&card)
+	return card, result.Error
 }
 
 // GetUser returns user based on tg_user_id

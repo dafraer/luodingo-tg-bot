@@ -13,7 +13,7 @@ type User struct {
 	StudyTime    time.Duration
 	State        int
 	DeckSelected string
-	CardSelected string
+	CardSelected int
 	PageSelected int
 	Language     string
 }

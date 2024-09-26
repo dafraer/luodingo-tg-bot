@@ -86,7 +86,6 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 }
 
 func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
-	//Check if card exists
 	user, err := db.GetUser(update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user state", "error", err.Error())
@@ -99,6 +98,7 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
 	}
 
+	//Check if card exists
 	exists, err := db.CardExists(&db.Card{Front: update.Message.Text}, user.DeckSelected, update.Message.From.ID)
 	if exists {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.CardExists[lang])
@@ -109,7 +109,12 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Update user state to "waiting for back side of the card" and put front card in there
-	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: update.Message.Text}); err != nil {
+	id, err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: update.Message.Text, Back: "", Learned: false})
+	if err != nil {
+		b.Logger.Errorw("Error creating card", "error", err.Error())
+	}
+
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: id}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
@@ -128,13 +133,13 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 		return
 	}
 
-	//Create the card in the db
-	if err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: user.CardSelected, Back: update.Message.Text}); err != nil {
-		b.Logger.Errorw("Error creating deck", "error", err.Error())
+	b.Logger.Debugw("aaa", "back of the card", update.Message.Text, "card_id", user.Id)
+	if err := db.UpdateCard(&db.Card{Id: user.CardSelected, Back: update.Message.Text}); err != nil {
+		b.Logger.Errorw("Error updating card", "error", err.Error())
 	}
 
 	//Update user state
-	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardFront, CardSelected: " "}); err != nil {
+	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardFront, CardSelected: user.CardSelected}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
