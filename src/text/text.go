@@ -34,10 +34,11 @@ type Messages struct {
 	StopStudy         map[string]string `json:"stop_study"`
 	FinishedStudy     map[string]string `json:"finished_study"`
 	DeckExists        map[string]string `json:"deck_exists"`
-	CardExists        map[string]string `json:"card_exists"`
 	TooLong           map[string]string `json:"too_long"`
 	Done              map[string]string `json:"done"`
 	Cancel            map[string]string `json:"cancel"`
+	AddReverse        map[string]string `json:"add_reverse"`
+	ReverseAdded      map[string]string `json:"reverse_added"`
 }
 
 func LoadMessages() Messages {

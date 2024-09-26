@@ -38,13 +38,6 @@ func CreateCard(deckName string, userId int64, card *Card) (id int, err error) {
 		return -1, result.Error
 	}
 
-	//Add reverse card
-	/*result = db.Exec("INSERT INTO cards (deck_id, front, back, learned) VALUES ((SELECT id FROM decks WHERE name = ? AND tg_user_id = ?), ?, ?, ?);", deckName, userId, card.Back, card.Front, card.Learned)
-	if result.Error != nil {
-		return result.Error
-	}
-	*/
-
 	//Increment amount of cards in the deck
 	result = db.Exec("UPDATE decks SET cards_amount = cards_amount + 1 WHERE name = ? AND tg_user_id = ?;", deckName, userId)
 	if result.Error != nil {

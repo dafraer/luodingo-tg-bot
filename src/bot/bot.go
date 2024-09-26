@@ -44,7 +44,10 @@ func New(token string, timeout int, offset int) *tgBot {
 
 	//Create logger
 	logger, err := zap.NewDevelopment()
-	sugar := logger.Sugar()
+	var sugar *zap.SugaredLogger
+	if logger != nil {
+		sugar = logger.Sugar()
+	}
 
 	if err != nil {
 		panic(fmt.Errorf("error while creating new Logger, %v ", err))

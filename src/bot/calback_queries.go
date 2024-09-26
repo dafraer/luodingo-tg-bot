@@ -8,15 +8,16 @@ import (
 )
 
 const (
-	leftDeck  = "qF5!v6r9Vm"
-	rightDeck = "_(dC9z96D#"
-	leftCard  = "V4q38!9mZo"
-	rightCard = "9r62'Q7]}E"
-	stop      = "?9{i6WL6Y|"
-	check     = "%4k4!OI0/%"
-	cross     = "%MUg0L8<3m"
-	done      = "J0z5'3-1GD"
-	cancel    = "H9fj7'10d"
+	leftDeck   = "qF5!v6r9Vm"
+	rightDeck  = "_(dC9z96D#"
+	leftCard   = "V4q38!9mZo"
+	rightCard  = "9r62'Q7]}E"
+	stop       = "?9{i6WL6Y|"
+	check      = "%4k4!OI0/%"
+	cross      = "%MUg0L8<3m"
+	done       = "J0z5'3-1GD"
+	cancel     = "H9fj7'10d"
+	addReverse = "gjDrfjFn)dKj"
 )
 
 func processCallback(b *tgBot, update tgbotapi.Update) {
@@ -44,6 +45,9 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 	case cancel:
 		b.deleteMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID)
 		return
+	case addReverse:
+		addReverseCardCallback(b, update)
+		return
 	}
 
 	switch user.State {
@@ -65,6 +69,48 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 		doneCallback(b, update)
 	default:
 		unknownCallback(b, update)
+	}
+}
+
+func addReverseCardCallback(b *tgBot, update tgbotapi.Update) {
+	user, err := db.GetUser(update.CallbackQuery.From.ID)
+	if err != nil {
+		b.Logger.Errorw("Error getting user state", "error", err.Error())
+		return
+	}
+	if user != nil {
+		card, err := db.GetCard(user.CardSelected)
+		if err != nil {
+			b.Logger.Errorw("Error getting card", "error", err.Error())
+			return
+		}
+		if _, err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: card.Back, Back: card.Front, Learned: false}); err != nil {
+			b.Logger.Errorw("Error creating card", "error", err.Error())
+		}
+	}
+
+	//Get user language
+	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
+	if err != nil {
+		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
+	}
+
+	//Create an edited inline keyboard without function to add reverse card
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.Done[lang], done)),
+	)
+
+	edit := tgbotapi.NewEditMessageReplyMarkup(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, keyboard)
+	if _, err := b.Bot.Request(edit); err != nil {
+		b.Logger.Errorw("Error editing message", "error", err.Error())
+		return
+	}
+
+	//Notify user that reverse card has been added
+	msg := tgbotapi.NewMessage(update.CallbackQuery.From.ID, b.Messages.ReverseAdded[lang])
+	if _, err := b.Bot.Send(msg); err != nil {
+		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}
 }
 

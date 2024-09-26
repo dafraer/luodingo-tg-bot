@@ -98,16 +98,6 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
 	}
 
-	//Check if card exists
-	exists, err := db.CardExists(&db.Card{Front: update.Message.Text}, user.DeckSelected, update.Message.From.ID)
-	if exists {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.CardExists[lang])
-		if _, err := b.Bot.Send(msg); err != nil {
-			b.Logger.Errorw("Error sending message", "error", err.Error())
-		}
-		return
-	}
-
 	//Update user state to "waiting for back side of the card" and put front card in there
 	id, err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: update.Message.Text, Back: "", Learned: false})
 	if err != nil {
@@ -143,14 +133,17 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
 
-	//Create an inline keyboard to stop adding cards
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Done", done)))
-
 	//Get user language
 	lang, err := language(update.Message.From.LanguageCode, update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
 	}
+
+	//Create an inline keyboard to stop adding cards or to add reverse card
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.AddReverse[lang], addReverse)),
+		tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.Done[lang], done)),
+	)
 
 	//Prompt to add another one
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.ChooseCardFront[lang])

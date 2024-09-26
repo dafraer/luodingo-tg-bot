@@ -129,11 +129,6 @@
       "ru": "⚠️Колода с таким названием уже существует. Пожалуйста, выберите другое название.",
       "es": "⚠️Ya existe un mazo con ese nombre. Por favor, elige otro nombre."
     },
-    "card_exists": {
-      "en": "⚠️This flashcard already exists. Please use a different front text.",
-      "ru": "⚠️Эта карточка уже существует. Пожалуйста, используйте другой текст.",
-      "es": "⚠️Esta tarjeta ya existe. Usa otro texto para la parte frontal."
-    },
     "too_long": {
       "en": "⚠️Deck and card names can't be longer than 40 characters.",
       "ru": "⚠️Названия колод и карточек не могут быть длиннее 40 символов.",
@@ -148,5 +143,15 @@
       "en": "Cancel",
       "ru": "Отмена",
       "es": "Cancelar"
+    },
+    "add_reverse": {
+      "en": "Add reverse card",
+      "ru": "Добавить перевернутую карточку",
+      "es": "Agregar tarjeta inversa"
+    },
+    "reverse_added": {
+      "en": "Reverse card has been added to the deck",
+      "ru": "Перевернутая карточка была успешно добавлена в колоду",
+      "es": "Se ha añadido la carta inversa al mazo."
     }
   }
