@@ -24,7 +24,7 @@ func handleUpdates(b *tgBot, update tgbotapi.Update) {
 	}
 }
 
-func createDecksInlineKeyboard(userId int64, page int) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
+func createDecksInlineKeyboard(b *tgBot, userId int64, page int, lang string) (keyboard tgbotapi.InlineKeyboardMarkup, decksAmount int, err error) {
 	//Get decks from database
 	decks, err := db.GetDecks(userId)
 
@@ -48,11 +48,14 @@ func createDecksInlineKeyboard(userId int64, page int) (keyboard tgbotapi.Inline
 			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", leftDeck), tgbotapi.NewInlineKeyboardButtonData("➡️️", rightDeck)))
 		}
 	}
+	//Add cancel button
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.Cancel[lang], cancel)))
+
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(decks), err
 }
 
-func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, page int) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
+func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, page int, lang string) (keyboard tgbotapi.InlineKeyboardMarkup, cardsAmount int, err error) {
 	b.Logger.Debugw("createCardsInlineKeyboard", "page", page)
 	//Get cards from database
 	cards, err := db.GetCards(deckName, userId)
@@ -76,6 +79,9 @@ func createCardsInlineKeyboard(userId int64, deckName string, b *tgBot, page int
 			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⬅️", leftCard), tgbotapi.NewInlineKeyboardButtonData("➡️️", rightCard)))
 		}
 	}
+	//Add cancel button
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.Cancel[lang], cancel)))
+
 	//Return the keyboard with created buttons
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(cards), err
 }

@@ -143,5 +143,10 @@
       "en": "Done",
       "ru": "Готово",
       "es": "Hecho"
+    },
+    "cancel": {
+      "en": "Cancel",
+      "ru": "Отмена",
+      "es": "Cancelar"
     }
   }

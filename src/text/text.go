@@ -37,6 +37,7 @@ type Messages struct {
 	CardExists        map[string]string `json:"card_exists"`
 	TooLong           map[string]string `json:"too_long"`
 	Done              map[string]string `json:"done"`
+	Cancel            map[string]string `json:"cancel"`
 }
 
 func LoadMessages() Messages {
