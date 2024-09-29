@@ -78,6 +78,7 @@ func newDeckCommand(b *tgBot, update tgbotapi.Update) {
 	//Update user state to "waiting for a deck name to create new deck"
 	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewDeckName}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
+		return
 	}
 
 	//Get user language
@@ -199,6 +200,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 		if _, err := b.Bot.Send(msg); err != nil {
 			b.Logger.Errorw("Error sending message", "error", err.Error())
 		}
+		return
 	}
 
 	//Prompt user to choose deck

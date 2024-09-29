@@ -36,7 +36,7 @@ type Card struct {
 var db *gorm.DB
 
 func Connect(host, user, password, name, port string) (err error) {
-	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", host, user, password, name, port)
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=require sslrootcert=ca.pem", host, user, password, name, port)
 	db, err = gorm.Open(postgres.Open(dsn))
 	if err != nil {
 		return
