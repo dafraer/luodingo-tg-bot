@@ -1,74 +1,42 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
+	_ "github.com/joho/godotenv/autoload"
 	"os"
 )
 
 type Bot struct {
-	Token   string `json:"token"`
-	Offset  int    `json:"offset"`
-	Timeout int    `json:"timeout"`
+	Token string
 }
 
 type Database struct {
-	Host     string `json:"host"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	DbName   string `json:"db_name"`
-	Port     string `json:"port"`
+	Host     string
+	User     string
+	Password string
+	DbName   string
+	Port     string
 }
 
 var BotConfig Bot
 var DatabaseConfig Database
 
-func Load(botPath, dbPath string) {
-	BotConfig = loadBotConfig(botPath)
-	DatabaseConfig = loadDatabaseConfig(dbPath)
+func Load() {
+	BotConfig = loadBotConfig()
+	DatabaseConfig = loadDatabaseConfig()
 }
 
-func loadBotConfig(path string) Bot {
-	var cfg Bot
-	config, err := os.Open(path)
-	if err != nil {
-		panic(fmt.Errorf("error opening config file: %v", err))
+func loadBotConfig() Bot {
+	return Bot{
+		Token: os.Getenv("BOT_TOKEN"),
 	}
-	defer func() {
-		if err := config.Close(); err != nil {
-			panic(fmt.Errorf("error closing config fil:, %v", err))
-		}
-	}()
-
-	p, err := io.ReadAll(config)
-	if err != nil {
-		panic(fmt.Errorf("error opening config file: %v", err))
-	}
-	if err = json.Unmarshal(p, &cfg); err != nil {
-		panic(fmt.Errorf("error parsing config file: %v", err))
-	}
-	return cfg
 }
 
-func loadDatabaseConfig(path string) Database {
-	var cfg Database
-	config, err := os.Open(path)
-	if err != nil {
-		panic(fmt.Errorf("error opening config file: %v", err))
+func loadDatabaseConfig() Database {
+	return Database{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		DbName:   os.Getenv("DB_NAME"),
+		User:     os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
 	}
-	defer func() {
-		if err := config.Close(); err != nil {
-			panic(fmt.Errorf("error closing config file: %v", err))
-		}
-	}()
-
-	p, err := io.ReadAll(config)
-	if err != nil {
-		panic(fmt.Errorf("error when opening config file, %v", err))
-	}
-	if err = json.Unmarshal(p, &cfg); err != nil {
-		panic(fmt.Errorf("error parsing config file: %v", err))
-	}
-	return cfg
 }

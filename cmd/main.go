@@ -5,16 +5,15 @@ import (
 	"flashcards-bot/src/config"
 	"flashcards-bot/src/db"
 	"fmt"
-	"os"
 )
 
 func main() {
-	config.Load(os.Args[1], os.Args[2])
+	config.Load()
 	if err := db.Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
 		panic(fmt.Errorf("error connecting to the database: %v", err))
 	}
 
-	myBot := bot.New(config.BotConfig.Token, config.BotConfig.Timeout, config.BotConfig.Offset)
+	myBot := bot.New(config.BotConfig.Token, 60, 0)
 	myBot.Logger.Infow("Authorised", "Account", myBot.Bot.Self.UserName)
 	myBot.Run()
 

@@ -1,3 +1,5 @@
 .idea/
 src/config/configs/
 run.sh
+.env
+docker-compose.yaml
