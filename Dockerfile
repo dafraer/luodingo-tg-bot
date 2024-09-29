@@ -9,5 +9,3 @@ RUN go mod download
 RUN go build -o luodingo ./cmd
 
 CMD ["./luodingo"]
-
-FROM
