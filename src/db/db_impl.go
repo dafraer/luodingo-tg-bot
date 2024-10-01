@@ -7,7 +7,7 @@ func CreateDeck(deck *Deck) (err error) {
 
 // GetDecks gets decks by user id
 func GetDecks(userId int64) (decks []Deck, err error) {
-	result := db.Raw("SELECT * FROM decks WHERE tg_user_id = ?;", userId).Scan(&decks)
+	result := db.Raw("SELECT * FROM decks WHERE tg_user_id = ? ORDER BY id;", userId).Scan(&decks)
 	return decks, result.Error
 }
 
@@ -50,7 +50,7 @@ func CreateCard(deckName string, userId int64, card *Card) (id int, err error) {
 
 // GetCards returns card from a single deck based on deck name and tg_user_id
 func GetCards(deckName string, userId int64) (cards []Card, err error) {
-	result := db.Raw("SELECT cards.id, cards.deck_id, front, back, learned FROM cards JOIN decks ON decks.id = cards.deck_id WHERE decks.name = ? AND decks.tg_user_id = ?;", deckName, userId).Scan(&cards)
+	result := db.Raw("SELECT cards.id, cards.deck_id, front, back, learned FROM cards JOIN decks ON decks.id = cards.deck_id WHERE decks.name = ? AND decks.tg_user_id = ? ORDER BY cards.id;", deckName, userId).Scan(&cards)
 	return cards, result.Error
 }
 
