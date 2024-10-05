@@ -8,20 +8,20 @@ import (
 )
 
 func main() {
-	config.Load()
-	if err := db.Connect(config.DatabaseConfig.Host, config.DatabaseConfig.User, config.DatabaseConfig.Password, config.DatabaseConfig.DbName, config.DatabaseConfig.Port); err != nil {
+	cfg := config.Load()
+	if err := db.Connect(cfg.DbHost, cfg.DbUser, cfg.DbPassword, cfg.DbName, cfg.DbPort); err != nil {
 		panic(fmt.Errorf("error connecting to the database: %v", err))
 	}
 
-	myBot := bot.New(config.BotConfig.Token, 60, 0)
+	myBot := bot.New(cfg.BotToken, 60, 0)
 	myBot.Logger.Infow("Authorised", "Account", myBot.Bot.Self.UserName)
 	myBot.Run()
 
 	if err := db.Disconnect(); err != nil {
 		panic(fmt.Errorf("error disconnecting from db: %v", err))
 	}
+	//flush logger buffer
 	if err := myBot.Logger.Sync(); err != nil {
 		panic(fmt.Errorf("error flushing buffer: %v", err))
 	}
-
 }

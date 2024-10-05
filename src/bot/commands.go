@@ -4,8 +4,8 @@ package bot
 
 import (
 	"flashcards-bot/src/db"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"strconv"
 	"strings"
 )
 
@@ -109,7 +109,7 @@ func addCardsCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.ChooseDeck[lang])
 
 	//Create an inline keyboard
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update.Message.From.ID, 1, lang)
+	keyboard, decksAmount, err := decksInlineKeyboard(b, update.Message.From.ID, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error creating a keyboard", "error", err.Error())
 	}
@@ -133,7 +133,7 @@ func addCardsCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Add sent message to delete queue to make sure that inline keyboard is deleted later
-	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
+	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
 }
 func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 	//Get decks from db
@@ -158,19 +158,31 @@ func listDecksCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//List user's decks
-	var table strings.Builder
-	table.WriteString(b.Messages.ListDecks[lang])
+	var list strings.Builder
+	list.WriteString(b.Messages.ListDecks[lang])
+
+	cardsAmount, err := db.CardsAmount(update.Message.From.ID)
+	if err != nil {
+		b.Logger.Errorw("Error getting card amount", "error", err.Error())
+		return
+	}
 
 	for i := 0; i < len(decks); {
-		for j := 0; j < 90 && i < len(decks); j++ {
-			table.WriteString(fmt.Sprintf("%d. %v\n", i+1, decks[i]))
+		for j := 0; j < maxLinesPerMessage && i < len(decks); j++ {
+			list.WriteString(strconv.Itoa(i + 1))
+			list.WriteString(". ")
+			list.WriteString(decks[i].Name)
+			list.WriteString(": ")
+			list.WriteString(strconv.Itoa(cardsAmount[i]))
+			list.WriteString(" cards")
+			list.WriteString("\n")
 			i++
 		}
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, table.String())
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, list.String())
 		if _, err := b.Bot.Send(msg); err != nil {
 			b.Logger.Errorw("Error sending message", "error", err.Error())
 		}
-		table.Reset()
+		list.Reset()
 	}
 }
 
@@ -188,7 +200,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create a keyboard with decks
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update.Message.From.ID, 1, lang)
+	keyboard, decksAmount, err := decksInlineKeyboard(b, update.Message.From.ID, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error creating a keyboard", "error", err.Error())
 		return
@@ -210,7 +222,7 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 	if err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}
-	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
+	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
 }
 
 func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
@@ -229,7 +241,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.ChooseDeck[lang])
 
 	//Create a new keyboard with decks to choose from
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update.Message.From.ID, 1, lang)
+	keyboard, decksAmount, err := decksInlineKeyboard(b, update.Message.From.ID, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error getting decks", "error", err.Error())
 	}
@@ -251,7 +263,7 @@ func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 		return
 	}
-	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
+	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
 }
 
 func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
@@ -267,7 +279,7 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create  a keyboard with decks to choose from
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update.Message.From.ID, 1, lang)
+	keyboard, decksAmount, err := decksInlineKeyboard(b, update.Message.From.ID, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error creating inline keyboard", "error", err.Error())
 	}
@@ -289,7 +301,7 @@ func deleteCardCommand(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 		return
 	}
-	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
+	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
 }
 
 func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
@@ -305,7 +317,7 @@ func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 	}
 
 	//Create a keyboard with deck names
-	keyboard, decksAmount, err := createDecksInlineKeyboard(b, update.Message.From.ID, 1, lang)
+	keyboard, decksAmount, err := decksInlineKeyboard(b, update.Message.From.ID, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error creating inline keyboard", "error", err.Error())
 	}
@@ -327,7 +339,7 @@ func studyDeckCommand(b *tgBot, update tgbotapi.Update) {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 		return
 	}
-	b.DeleteQueue = append(b.DeleteQueue, sentMessage.MessageID)
+	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
 }
 
 func unknownCommand(b *tgBot, update tgbotapi.Update) {

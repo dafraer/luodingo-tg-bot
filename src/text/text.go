@@ -41,8 +41,9 @@ type Messages struct {
 	ReverseAdded      map[string]string `json:"reverse_added"`
 }
 
-func LoadMessages() Messages {
+func Load() *Messages {
 	var msgs Messages
+
 	text, err := os.Open("./src/text/messages.json")
 	if err != nil {
 		panic(fmt.Errorf("error opening text file: %v", err))
@@ -52,13 +53,15 @@ func LoadMessages() Messages {
 			panic(fmt.Errorf("error closing text file: %v", err))
 		}
 	}()
+
 	var p []byte
 	p, err = io.ReadAll(text)
 	if err != nil {
 		panic(fmt.Errorf("error reading english text file: %v", err))
 	}
+
 	if err = json.Unmarshal(p, &msgs); err != nil {
 		panic(fmt.Errorf("error when parsing english text file, %v", err))
 	}
-	return msgs
+	return &msgs
 }
