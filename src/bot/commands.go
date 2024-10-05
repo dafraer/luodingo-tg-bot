@@ -1,5 +1,3 @@
-// This file contains functions that process commands
-// Commands generally do not depend on user state, but they update it for future messages and callback queries
 package bot
 
 import (
