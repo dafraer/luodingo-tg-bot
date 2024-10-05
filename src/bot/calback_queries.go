@@ -429,7 +429,6 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, user *db.User) {
 
 // doneCallback stops the process of adding new cards
 func doneCallback(b *tgBot, update tgbotapi.Update) {
-	b.DeleteQueue = append(b.DeleteQueue, message{update.CallbackQuery.Message.MessageID, update.CallbackQuery.Message.Chat.ID})
 	b.clearDeleteQueue()
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: defaultState}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
