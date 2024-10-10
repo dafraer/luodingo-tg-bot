@@ -64,7 +64,6 @@ func cancelCallback(b *tgBot, update tgbotapi.Update) {
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: 1}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
-	b.DeleteQueue = append(b.DeleteQueue, message{update.CallbackQuery.Message.MessageID, update.CallbackQuery.Message.Chat.ID})
 	b.clearDeleteQueue()
 }
 
@@ -367,13 +366,10 @@ func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 		update.CallbackQuery.Message.MessageID,
 		keyboard,
 	)
-	sentMessage, err := b.Bot.Send(edit)
-	if err != nil {
+	if _, err = b.Bot.Request(edit); err != nil {
 		b.Logger.Errorw("Error sending edit", "error", err.Error())
 		return
 	}
-	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, update.CallbackQuery.Message.Chat.ID})
-	b.clearDeleteQueue()
 }
 
 // cardDeleteCard deletes card
