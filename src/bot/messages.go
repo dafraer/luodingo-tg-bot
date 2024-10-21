@@ -2,6 +2,7 @@ package bot
 
 import (
 	"flashcards-bot/src/db"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -108,7 +109,7 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update, user *db.User) {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 	}
 
-	b.clearDeleteQueue()
+	b.clearDeleteQueue(update.Message.Chat.ID)
 }
 
 func newCardBackMessage(b *tgBot, update tgbotapi.Update, user *db.User) {

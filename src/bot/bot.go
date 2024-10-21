@@ -164,11 +164,13 @@ func cardsInlineKeyboard(userId int64, deckName string, b *tgBot, page int, lang
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...), len(cards), err
 }
 
-func (b *tgBot) clearDeleteQueue() {
+func (b *tgBot) clearDeleteQueue(chatId int64) {
 	for _, msg := range b.DeleteQueue {
-		deleteMessage := tgbotapi.NewDeleteMessage(msg.chatId, msg.msgId)
-		if _, err := b.Bot.Request(deleteMessage); err != nil {
-			b.Logger.Errorw("Error deleting message", err, err.Error())
+		if chatId == msg.chatId {
+			deleteMessage := tgbotapi.NewDeleteMessage(msg.chatId, msg.msgId)
+			if _, err := b.Bot.Request(deleteMessage); err != nil {
+				b.Logger.Errorw("Error deleting message", err, err.Error())
+			}
 		}
 	}
 	b.DeleteQueue = nil

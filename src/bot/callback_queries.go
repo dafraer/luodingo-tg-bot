@@ -64,7 +64,7 @@ func cancelCallback(b *tgBot, update tgbotapi.Update) {
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: 1}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
-	b.clearDeleteQueue()
+	b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 }
 
 func addReverseCardCallback(b *tgBot, update tgbotapi.Update, user *db.User) {
@@ -126,7 +126,7 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 	switch update.CallbackQuery.Data {
 	case stop:
 		b.DeleteQueue = append(b.DeleteQueue, message{update.CallbackQuery.Message.MessageID, update.CallbackQuery.Message.Chat.ID})
-		b.clearDeleteQueue()
+		b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 	case check:
 		if err := db.UpdateCard(&db.Card{Id: user.CardSelected, Learned: true}); err != nil {
 			b.Logger.Errorw("Error updating card state", "error", err.Error())
@@ -232,7 +232,7 @@ func listCardsCallback(b *tgBot, update tgbotapi.Update) {
 		}
 		//Delete message with inline keyboard
 		b.DeleteQueue = append(b.DeleteQueue, message{update.CallbackQuery.Message.MessageID, update.CallbackQuery.Message.Chat.ID})
-		b.clearDeleteQueue()
+		b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 
 		//Create and send a message with cards list
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, list.String())
@@ -272,7 +272,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	//if user has no decks left delete the message
 	if decksAmount <= 0 {
 		b.DeleteQueue = append(b.DeleteQueue, message{update.CallbackQuery.Message.MessageID, update.CallbackQuery.Message.Chat.ID})
-		b.clearDeleteQueue()
+		b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, b.Messages.DeckDeleted[lang])
 		if _, err := b.Bot.Send(msg); err != nil {
@@ -396,7 +396,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, user *db.User) {
 	//If no cards have left - delete the message with inline keyboard
 	if cardsAmount <= 0 {
 		b.DeleteQueue = append(b.DeleteQueue, message{update.CallbackQuery.Message.MessageID, update.CallbackQuery.Message.Chat.ID})
-		b.clearDeleteQueue()
+		b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, b.Messages.CardDeleted[lang])
 		if _, err := b.Bot.Send(msg); err != nil {
 			b.Logger.Errorw("Error sending message", "error", err.Error())
@@ -425,7 +425,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, user *db.User) {
 
 // doneCallback stops the process of adding new cards
 func doneCallback(b *tgBot, update tgbotapi.Update) {
-	b.clearDeleteQueue()
+	b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: defaultState}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
 	}
