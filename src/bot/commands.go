@@ -128,6 +128,7 @@ func addCardsCommand(b *tgBot, update tgbotapi.Update) {
 	sentMessage, err := b.Bot.Send(msg)
 	if err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
+		return
 	}
 
 	//Add sent message to delete queue to make sure that inline keyboard is deleted later
