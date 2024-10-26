@@ -3,9 +3,10 @@ package bot
 import (
 	"flashcards-bot/src/db"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"strconv"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func processCallback(b *tgBot, update tgbotapi.Update) {
@@ -63,6 +64,7 @@ func processCallback(b *tgBot, update tgbotapi.Update) {
 func cancelCallback(b *tgBot, update tgbotapi.Update) {
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: 1}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
+		return
 	}
 	b.clearDeleteQueue(update.CallbackQuery.Message.Chat.ID)
 }
@@ -76,6 +78,7 @@ func addReverseCardCallback(b *tgBot, update tgbotapi.Update, user *db.User) {
 		}
 		if _, err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: card.Back, Back: card.Front, Learned: false}); err != nil {
 			b.Logger.Errorw("Error creating card", "error", err.Error())
+			return
 		}
 	}
 
@@ -110,6 +113,7 @@ func studyDeckCallback(b *tgBot, update tgbotapi.Update) {
 	//Update user state to studying
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingCardFeedback, DeckSelected: update.CallbackQuery.Data}); err != nil {
 		b.Logger.Errorw("Error updating deck state", "error", err.Error())
+		return
 	}
 
 	edit, err := studyRandomCard(b, update)
@@ -119,6 +123,7 @@ func studyDeckCallback(b *tgBot, update tgbotapi.Update) {
 	}
 	if _, err := b.Bot.Send(edit); err != nil {
 		b.Logger.Errorw("Error sending edit", "error", err.Error())
+		return
 	}
 }
 
@@ -130,6 +135,7 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 	case check:
 		if err := db.UpdateCard(&db.Card{Id: user.CardSelected, Learned: true}); err != nil {
 			b.Logger.Errorw("Error updating card state", "error", err.Error())
+			return
 		}
 
 		//Go for the next card
@@ -166,6 +172,7 @@ func studyCardCallback(b *tgBot, update tgbotapi.Update, user db.User) {
 		lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 		if err != nil {
 			b.Logger.Errorw("Error getting user language", "error", err.Error())
+			return
 		}
 		stopButton := tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(b.Messages.StopStudy[lang], stop))
 
@@ -194,12 +201,14 @@ func listCardsCallback(b *tgBot, update tgbotapi.Update) {
 	cards, err := db.GetCards(update.CallbackQuery.Data, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting cards from db", "error", err.Error())
+		return
 	}
 
 	//Get user language
 	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//If no cards tell user that they have no cards
@@ -238,13 +247,14 @@ func listCardsCallback(b *tgBot, update tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, list.String())
 		if _, err := b.Bot.Send(msg); err != nil {
 			b.Logger.Errorw("Error sending message", "error", err.Error())
+			return
 		}
 		list.Reset()
 	}
 }
 
 func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
-	//Don't update user state because then callback cause bot to crash
+	//Don't update user state because then callback causes bot to crash
 	//Get deck name to delete
 	name := update.CallbackQuery.Data
 
@@ -252,6 +262,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//Delete the deck
@@ -262,12 +273,14 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 		if _, err := b.Bot.Send(msg); err != nil {
 			b.Logger.Errorw("Error sending message", "error", err.Error())
 		}
+		return
 	}
 
 	//Get decks keyboard
 	keyboard, decksAmount, err := decksInlineKeyboard(b, update.CallbackQuery.From.ID, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard", "error", err.Error())
+		return
 	}
 	//if user has no decks left delete the message
 	if decksAmount <= 0 {
@@ -289,6 +302,7 @@ func deleteDeckCallback(b *tgBot, update tgbotapi.Update) {
 	)
 	if _, err := b.Bot.Request(edit); err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
+		return
 	}
 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, b.Messages.DeckDeleted[lang])
 	if _, err := b.Bot.Send(msg); err != nil {
@@ -333,18 +347,21 @@ func newCardCallback(b *tgBot, update tgbotapi.Update) {
 func deckDeleteCardCallback(b *tgBot, update tgbotapi.Update) {
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, State: waitingDeleteCardCardName, DeckSelected: update.CallbackQuery.Data}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
+		return
 	}
 
 	//Get language
 	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//Create inline keyboard of cards in a selected deck
 	keyboard, cardsAmount, err := cardsInlineKeyboard(update.CallbackQuery.From.ID, update.CallbackQuery.Data, b, 1, lang)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
+		return
 	}
 
 	//If deck has no cards notify user about it
@@ -384,6 +401,7 @@ func cardDeleteCardCallback(b *tgBot, update tgbotapi.Update, user *db.User) {
 	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//Create a new inline keyboard without the deleted card
@@ -436,6 +454,7 @@ func flipCardsCallback(b *tgBot, update tgbotapi.Update, direction int, user *db
 	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + direction}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
@@ -443,6 +462,7 @@ func flipCardsCallback(b *tgBot, update tgbotapi.Update, direction int, user *db
 	keyboard, _, err := cardsInlineKeyboard(update.CallbackQuery.From.ID, user.DeckSelected, b, user.PageSelected+direction, lang)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for cards", "error", err.Error())
+		return
 	}
 	edit := tgbotapi.NewEditMessageReplyMarkup(
 		update.CallbackQuery.Message.Chat.ID,
@@ -459,14 +479,17 @@ func flipDecksCallback(b *tgBot, update tgbotapi.Update, direction int, user *db
 	lang, err := language(update.CallbackQuery.From.LanguageCode, update.CallbackQuery.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	if err := db.UpdateUser(&db.User{TgUserId: update.CallbackQuery.From.ID, PageSelected: user.PageSelected + direction}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
+		return
 	}
 	keyboard, _, err := decksInlineKeyboard(b, update.CallbackQuery.From.ID, user.PageSelected+direction, lang)
 	if err != nil {
 		b.Logger.Errorw("Error getting inline keyboard for decks", "error", err.Error())
+		return
 	}
 	edit := tgbotapi.NewEditMessageReplyMarkup(
 		update.CallbackQuery.Message.Chat.ID,

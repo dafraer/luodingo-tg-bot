@@ -8,8 +8,9 @@ import (
 
 func processMessage(b *tgBot, update tgbotapi.Update) {
 	//Check that message is not longer than maxMessageLen
-	if len([]rune(update.Message.Text)) > maxMessageLen {
+	if len([]rune(update.Message.Text)) > maxMessageLen || len(update.Message.Text) > maxMessageSize {
 		longMessage(b, update)
+		return
 	}
 	b.Logger.Infow("Message", "from", update.Message.From.UserName, "body", update.Message.Text)
 
@@ -36,6 +37,7 @@ func longMessage(b *tgBot, update tgbotapi.Update) {
 	lang, err := language(update.Message.From.LanguageCode, update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.TooLong[lang])
@@ -49,6 +51,7 @@ func newDeckNameMessage(b *tgBot, update tgbotapi.Update) {
 	lang, err := language(update.Message.From.LanguageCode, update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//If deck exists already notify user about it
@@ -91,16 +94,19 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update, user *db.User) {
 	lang, err := language(update.Message.From.LanguageCode, update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//Update user state to "waiting for back side of the card" and put front card in there
 	id, err := db.CreateCard(user.DeckSelected, user.TgUserId, &db.Card{Front: update.Message.Text, Back: "", Learned: false})
 	if err != nil {
 		b.Logger.Errorw("Error creating card", "error", err.Error())
+		return
 	}
 
 	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardBack, CardSelected: id}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
+		return
 	}
 
 	//Prompt the user to choose back of the card
@@ -115,17 +121,20 @@ func newCardFrontMessage(b *tgBot, update tgbotapi.Update, user *db.User) {
 func newCardBackMessage(b *tgBot, update tgbotapi.Update, user *db.User) {
 	if err := db.UpdateCard(&db.Card{Id: user.CardSelected, Back: update.Message.Text}); err != nil {
 		b.Logger.Errorw("Error updating card", "error", err.Error())
+		return
 	}
 
 	//Update user state
 	if err := db.UpdateUser(&db.User{TgUserId: update.Message.From.ID, State: waitingNewCardFront, CardSelected: user.CardSelected}); err != nil {
 		b.Logger.Errorw("Error updating user state", "error", err.Error())
+		return
 	}
 
 	//Get user language
 	lang, err := language(update.Message.From.LanguageCode, update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	//Create an inline keyboard to stop adding cards or to add reverse card
@@ -140,11 +149,11 @@ func newCardBackMessage(b *tgBot, update tgbotapi.Update, user *db.User) {
 	sentMessage, err := b.Bot.Send(msg)
 	if err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
+		return
 	}
 
 	//Add message to the delete queue to make sure that inline keyboard will be deleted later
 	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
-
 }
 
 func unknownMessage(b *tgBot, update tgbotapi.Update) {
@@ -152,6 +161,7 @@ func unknownMessage(b *tgBot, update tgbotapi.Update) {
 	lang, err := language(update.Message.From.LanguageCode, update.Message.From.ID)
 	if err != nil {
 		b.Logger.Errorw("Error getting user language", "error", err.Error())
+		return
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.UnknownMessage[lang])

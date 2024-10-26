@@ -4,9 +4,10 @@ import (
 	"flashcards-bot/src/db"
 	"flashcards-bot/src/text"
 	"fmt"
+	"math/rand"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
-	"math/rand"
 )
 
 const (
@@ -34,7 +35,8 @@ const (
 	cancel             = "H9fj7'10d"
 	addReverse         = "gjDHfjFn)dKj"
 	maxLinesPerMessage = 90
-	maxMessageLen      = 40
+	maxMessageLen      = 40 //characters
+	maxMessageSize     = 64 //bytes
 )
 
 type tgBot struct {
