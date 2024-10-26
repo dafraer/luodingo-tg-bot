@@ -130,9 +130,9 @@
       "es": "⚠️Ya existe un mazo con ese nombre. Por favor, elige otro nombre."
     },
     "too_long": {
-      "en": "⚠️Deck and card names can't be longer than 40 characters.",
-      "ru": "⚠️Названия колод и карточек не могут быть длиннее 40 символов.",
-      "es": "⚠️Los nombres de los mazos y tarjetas no pueden tener más de 40 caracteres."
+      "en": "⚠️Deck and card names can't be that long",
+      "ru": "⚠️Названия колод и карточек не могут быть настолько длинными.",
+      "es": "⚠️Los nombres de los mazos y las cartas no pueden ser tan largos."
     },
     "done": {
       "en": "Done",
