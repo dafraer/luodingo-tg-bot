@@ -171,7 +171,7 @@ func (b *tgBot) clearDeleteQueue(chatId int64) {
 		if chatId == msg.chatId {
 			deleteMessage := tgbotapi.NewDeleteMessage(msg.chatId, msg.msgId)
 			if _, err := b.Bot.Request(deleteMessage); err != nil {
-				b.Logger.Errorw("Error deleting message", err, err.Error())
+				b.Logger.Errorw("Error deleting message", "error", err.Error())
 			}
 		}
 	}
