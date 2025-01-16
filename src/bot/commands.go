@@ -226,14 +226,16 @@ func listCardsCommand(b *tgBot, update tgbotapi.Update) {
 		}
 		return
 	}
-
 	//Prompt user to choose deck
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, b.Messages.ChooseDeck[lang])
 	msg.ReplyMarkup = keyboard
-	if _, err := b.Bot.Send(msg); err != nil {
+
+	sentMessage, err := b.Bot.Send(msg)
+	if err != nil {
 		b.Logger.Errorw("Error sending message", "error", err.Error())
 		return
 	}
+	b.DeleteQueue = append(b.DeleteQueue, message{sentMessage.MessageID, sentMessage.Chat.ID})
 }
 
 func deleteDeckCommand(b *tgBot, update tgbotapi.Update) {
