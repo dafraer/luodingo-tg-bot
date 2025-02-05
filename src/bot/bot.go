@@ -56,7 +56,7 @@ func New(token string, timeout int, offset int) *tgBot {
 	//Create the bot
 	myBot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		panic(fmt.Errorf("error while creatinga new Bot, %v ", err))
+		panic(fmt.Errorf("error while creating a new Bot, %v ", err))
 	}
 
 	//Create updates channel
