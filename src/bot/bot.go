@@ -23,20 +23,19 @@ const (
 	waitingNewCardBack         //Waiting for a card's back to create new card
 	waitingStudyDeckName       //Waiting for a deck name to study
 	waitingCardFeedback        //Waiting for user to pick if he learned the card or no
-
-	leftDeck           = "qF5!v6r9Vm"
-	rightDeck          = "_(dC9z96D#"
-	leftCard           = "V4q38!9mZo"
-	rightCard          = "9r62'Q7]}E"
-	stop               = "?9{i6WL6Y|"
-	check              = "%4k4!OI0/%"
-	cross              = "%MUg0L8<3m"
-	done               = "J0z5'3-1GD"
-	cancel             = "H9fj7'10d"
-	addReverse         = "gjDHfjFn)dKj"
-	maxLinesPerMessage = 90
-	maxMessageLen      = 40 //characters
-	maxMessageSize     = 64 //bytes
+	leftDeck                   = "button:left_deck"
+	rightDeck                  = "button:right_deck"
+	leftCard                   = "button:left_card"
+	rightCard                  = "button:right_card"
+	stop                       = "button:stop"
+	check                      = "button:check"
+	cross                      = "button:cross"
+	done                       = "button:done"
+	cancel                     = "button:cancel"
+	addReverse                 = "button:add_reverse"
+	maxLinesPerMessage         = 90
+	maxMessageLen              = 40 //characters
+	maxMessageSize             = 64 //bytes
 )
 
 type tgBot struct {
