@@ -9,7 +9,7 @@ import (
 
 func main() {
 	cfg := config.Load()
-	if err := db.Connect(cfg.DbHost, cfg.DbUser, cfg.DbPassword, cfg.DbName, cfg.DbPort); err != nil {
+	if err := db.Connect(cfg.DbUri); err != nil {
 		panic(fmt.Errorf("error connecting to the database: %v", err))
 	}
 

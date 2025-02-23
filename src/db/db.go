@@ -1,14 +1,12 @@
 package db
 
 import (
-	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Connect(host, user, password, name, port string) (err error) {
-	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=require sslrootcert=ca.pem", host, user, password, name, port)
-	db, err = gorm.Open(postgres.Open(dsn))
+func Connect(connStr string) (err error) {
+	db, err = gorm.Open(postgres.Open(connStr))
 	if err != nil {
 		return
 	}
