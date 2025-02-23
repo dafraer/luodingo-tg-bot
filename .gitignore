@@ -2,5 +2,4 @@
 src/config/configs/
 run.sh
 .env
-docker-compose.yaml
 ca.pem

@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+    restart: always 
+    networks:
+      bot_network:
+        ipv4_address: "192.168.92.20"
+  luodingo:
+    #Make sure to change architecture to the one used on your machine
+    image: "dafraer/luodingo:3.0-arm64"
+    container_name: bot
+    depends_on:
+      - postgres
+    environment:
+    #Change the environmental variables to your own
+      TOKEN: <your_telegram_bot_token>
+      DB_URI: "postgres://postgres:mysecretpassword@postgres:5432/postgres?sslmode=disable"
+    restart: always
+    networks:
+      bot_network:
+        ipv4_address: "192.168.92.21"
+networks:
+  bot_network:
+    ipam: 
+      driver: default
+      config:
+        - subnet: "192.168.92.0/24"

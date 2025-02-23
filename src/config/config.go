@@ -13,7 +13,7 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		BotToken: os.Getenv("BOT_TOKEN"),
+		BotToken: os.Getenv("TOKEN"),
 		DbUri:    os.Getenv("DB_URI"),
 	}
 }
