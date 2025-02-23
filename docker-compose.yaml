@@ -8,6 +8,8 @@ services:
     networks:
       bot_network:
         ipv4_address: "192.168.92.20"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data         
   luodingo:
     #Make sure to change architecture to the one used on your machine
     image: "dafraer/luodingo:3.0-arm64"
