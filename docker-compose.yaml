@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres
+    container_name: postgres_luodingo
     environment:
       POSTGRES_PASSWORD: mysecretpassword
     restart: always 
     networks:
-      bot_network:
-        ipv4_address: "192.168.92.20"
+      luodingo_network:
+        ipv4_address: "192.168.93.20"
     volumes:
       - ./pgdata:/var/lib/postgresql/data         
   luodingo:
     #Make sure to change architecture to the one used on your machine
     image: "dafraer/luodingo:3.0-arm64"
-    container_name: bot
+    container_name: luodingo
     depends_on:
       - postgres
     environment:
@@ -22,11 +22,11 @@ services:
       DB_URI: "postgres://postgres:mysecretpassword@postgres:5432/postgres?sslmode=disable"
     restart: always
     networks:
-      bot_network:
-        ipv4_address: "192.168.92.21"
+      luodingo_network:
+        ipv4_address: "192.168.93.21"
 networks:
-  bot_network:
+  luodingo_network:
     ipam: 
       driver: default
       config:
-        - subnet: "192.168.92.0/24"
+        - subnet: "192.168.93.0/24"
