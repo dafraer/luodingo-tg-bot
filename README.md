@@ -74,7 +74,7 @@ Run the following command to start Luodingo in the background:
 sudo docker-compose up -d
 ```  
 
-Now your bot should be up and running locally! 🚀
+Now your bot should be up and running locally! 
 
 
 <!-- FEATURES -->
@@ -91,7 +91,7 @@ Luodingo bot offers a variety of features to help you learn efficiently:
 - 🎓 **Study Mode** – Use the `/study_deck` command to review and test yourself.  
 - 🔄 **Add Reverse Cards** – Automatically generate reverse flashcards for better learning.  
 
-Luodingo makes vocabulary building simple and interactive! 🚀  
+Luodingo makes vocabulary building simple and interactive!   
 
 
 
